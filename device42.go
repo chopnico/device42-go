@@ -9,29 +9,29 @@ import (
 )
 
 const (
-	apiVersion = "1.0"
+	apiVersion     = "1.0"
 	defaultTimeout = 60
 )
 
 // The API client
 type Api struct {
-	Username string
-	Password string
-	BaseUrl string
-	TimeOut int
+	Username   string
+	Password   string
+	BaseUrl    string
+	TimeOut    int
 	httpClient *http.Client
 }
 
 // Creates a API client that uses basic auth
-func NewApiBasicAuth(username string, password string, baseUrl string, ignoreTlsErrors bool, timeOut int) (*Api, error){
+func NewApiBasicAuth(username string, password string, baseUrl string, ignoreTlsErrors bool, timeOut int) (*Api, error) {
 	if username == "" || password == "" {
 		return nil, errors.New(ErrorEmptyCredentials)
 	}
 
 	api := &Api{
-		BaseUrl: baseUrl + "/api/" + apiVersion + "/",
-		Username: username,
-		Password: password,
+		BaseUrl:    baseUrl + "/api/" + apiVersion + "/",
+		Username:   username,
+		Password:   password,
 		httpClient: &http.Client{},
 	}
 
@@ -42,7 +42,9 @@ func NewApiBasicAuth(username string, password string, baseUrl string, ignoreTls
 		api.httpClient.Transport = tr
 	}
 
-	if timeOut == 0 { timeOut = defaultTimeout }
+	if timeOut == 0 {
+		timeOut = defaultTimeout
+	}
 
 	api.TimeOut = timeOut
 	api.httpClient.Timeout = time.Duration(api.TimeOut) * time.Second
@@ -51,7 +53,7 @@ func NewApiBasicAuth(username string, password string, baseUrl string, ignoreTls
 }
 
 func (api *Api) Do(method, url string) ([]byte, error) {
-	req, err := http.NewRequest(method, url, nil,)
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
 	}
