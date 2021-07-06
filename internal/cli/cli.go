@@ -1,38 +1,22 @@
 package cli
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-
-	"github.com/olekukonko/tablewriter"
+	"github.com/urfave/cli/v2"
 )
 
-func PrintTable(data [][]string, header []string) {
-	t := tablewriter.NewWriter(os.Stdout)
-	t.SetHeader(header)
-	t.SetAutoWrapText(false)
-	t.SetAutoFormatHeaders(true)
-	t.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	t.SetAlignment(tablewriter.ALIGN_LEFT)
-	t.SetCenterSeparator("")
-	t.SetColumnSeparator("")
-	t.SetRowSeparator("")
-	t.SetHeaderLine(false)
-	t.SetBorder(false)
-	t.SetTablePadding("\t")
-	t.SetNoWhiteSpace(true)
-	t.AppendBulk(data)
-	t.Render()
+func NewCommands(app *cli.App) {
+	app.Commands = append(app.Commands,
+		ipamCommands(app),
+	)
 }
 
-func PrintJson(i interface{}) error {
-	j, err := json.Marshal(i)
-
-	if err != nil {
-		return err
+func globalFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.StringFlag{
+			Name:     "properties",
+			Aliases:  []string{"p"},
+			Usage:    "`PROPERTIES` to print (only relevant to list format)",
+			Required: false,
+		},
 	}
-
-	fmt.Printf("%s\n", j)
-	return nil
 }
