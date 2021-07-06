@@ -15,18 +15,18 @@ func ipamVrfGroupCommands(app *cli.App) []*cli.Command {
 	var commands []*cli.Command
 
 	commands = append(commands,
-		ipamVrfGroupShow(app),
+		ipamVrfGroupList(app),
 	)
 
 	return commands
 }
 
-func ipamVrfGroupShow(app *cli.App) *cli.Command {
+func ipamVrfGroupList(app *cli.App) *cli.Command {
 	flags := globalFlags()
 
 	return &cli.Command{
-		Name:  "show",
-		Usage: "show a vrf group",
+		Name:  "list",
+		Usage: "list a all vrf groups",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)

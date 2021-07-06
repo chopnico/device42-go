@@ -15,7 +15,7 @@ func ipamSubnetCommands(app *cli.App) []*cli.Command {
 	var commands []*cli.Command
 
 	commands = append(commands,
-		ipamSubnetShow(app),
+		ipamSubnetList(app),
 		ipamSubnetSuggest(app),
 		ipamSubnetSet(app),
 	)
@@ -27,29 +27,29 @@ func ipamSubnetGet(app *cli.App) *cli.Command {
 	flags := globalFlags()
 	flags = append(flags,
 		&cli.StringFlag{
-			Name:  "name",
+			Name:    "name",
 			Aliases: []string{"n"},
-			Usage: "`NAME` of the subnet",
+			Usage:   "`NAME` of the subnet",
 		},
 		&cli.StringFlag{
-			Name:  "id",
+			Name:    "id",
 			Aliases: []string{"i"},
-			Usage: "`ID` of the subnet",
+			Usage:   "`ID` of the subnet",
 		},
 		&cli.StringFlag{
-			Name:  "vlan-id",
+			Name:    "vlan-id",
 			Aliases: []string{"vi"},
-			Usage: "`VLAN-ID` of the subnet",
+			Usage:   "`VLAN-ID` of the subnet",
 		},
 	)
 	return &cli.Command{
-		Name: "get",
+		Name:    "get",
 		Aliases: []string{"g"},
-		Usage: "get a subnet",
+		Usage:   "get a subnet",
 		Action: func(c *cli.Context) error {
 			return nil
 		},
-	},
+	}
 }
 
 func ipamSubnetSuggest(app *cli.App) *cli.Command {
@@ -151,14 +151,14 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 	}
 }
 
-func ipamSubnetShow(app *cli.App) *cli.Command {
+func ipamSubnetList(app *cli.App) *cli.Command {
 	flags := globalFlags()
 
 	return &cli.Command{
-		Name:  "list",
+		Name:    "list",
 		Aliases: []string{"l"},
-		Usage: "list all subnets",
-		Flags: flags,
+		Usage:   "list all subnets",
+		Flags:   flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 			var (
