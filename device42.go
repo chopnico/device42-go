@@ -30,9 +30,9 @@ type Api struct {
 }
 
 // api error
-type apiError struct {
-	Code    int    `json:"code"`
-	Message string `json:"msg"`
+type ApiResponse struct {
+	Code    int           `json:"code"`
+	Message []interface{} `json:"msg"`
 }
 
 // REQUIRED: sets username
@@ -142,8 +142,8 @@ func defaultDebugLogger() *log.Logger {
 	return log.New(os.Stderr, "[DEBUG] ", log.LstdFlags)
 }
 
-func newApiError(b []byte) apiError {
-	r := apiError{}
+func newApiResponse(b []byte) ApiResponse {
+	r := ApiResponse{}
 	json.Unmarshal(b, &r)
 	return r
 }
@@ -213,8 +213,8 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 		api.WriteToDebugLog("debug http client do")
 		if err != nil {
 			b, _ := ioutil.ReadAll(resp.Body)
-			e := newApiError(b)
-			api.WriteToDebugLog("response message : " + e.Message)
+			e := newApiResponse(b)
+			api.WriteToDebugLog(fmt.Sprintf("response message : %s", e.Message))
 			api.WriteToDebugLog("response status code : " + fmt.Sprintf("%d", e.Code))
 		}
 		api.WriteToDebugLog("request headers : " + output.FormatItemAsPrettyJson(req.Header))
@@ -241,10 +241,10 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if api.isLoggingDebug() {
-		e := newApiError(b)
+		e := newApiResponse(b)
 
 		api.WriteToDebugLog("debug http client do")
-		api.WriteToDebugLog("response message : " + e.Message)
+		api.WriteToDebugLog(fmt.Sprintf("response message : %s", e.Message))
 		api.WriteToDebugLog("response status code : " + fmt.Sprintf("%d", e.Code))
 		api.WriteToDebugLog("request headers : " + output.FormatItemAsPrettyJson(req.Header))
 		api.WriteToDebugLog("request uri : " + req.URL.RequestURI())
@@ -256,11 +256,11 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	case 200:
 		return b, nil
 	default:
-		e := newApiError(b)
+		e := newApiResponse(b)
 		if api.isLoggingDebug() {
-			api.WriteToDebugLog(e.Message)
+			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			return nil, errors.New("debugging")
 		}
-		return nil, errors.New(e.Message)
+		return nil, errors.New(fmt.Sprintf("%s", e.Message))
 	}
 }
