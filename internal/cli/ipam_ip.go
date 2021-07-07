@@ -38,7 +38,8 @@ func ipamIpClear(app *cli.App) *cli.Command {
 				return err
 			}
 
-			fmt.Println("cleared")
+			fmt.Println("successfully cleared ip address " + c.String("address"))
+
 			return nil
 		},
 	}
