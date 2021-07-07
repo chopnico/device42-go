@@ -10,13 +10,15 @@ func NewCommands(app *cli.App) {
 	)
 }
 
-func globalFlags() []cli.Flag {
-	return []cli.Flag{
+func globalFlags(flags []cli.Flag) []cli.Flag {
+	flags = append(flags,
 		&cli.StringFlag{
 			Name:     "properties",
 			Aliases:  []string{"p"},
 			Usage:    "`PROPERTIES` to print (only relevant to list format)",
 			Required: false,
 		},
-	}
+	)
+
+	return flags
 }

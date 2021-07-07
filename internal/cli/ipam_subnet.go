@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,32 +15,34 @@ import (
 func ipamSubnetCommands(app *cli.App) []*cli.Command {
 	var commands []*cli.Command
 
+	// ordered
 	commands = append(commands,
 		ipamSubnetList(app),
-		ipamSubnetSuggest(app),
 		ipamSubnetSet(app),
+		ipamSubnetSuggest(app),
 	)
 
 	return commands
 }
 
 func ipamSubnetGet(app *cli.App) *cli.Command {
-	flags := globalFlags()
-	flags = append(flags,
-		&cli.StringFlag{
-			Name:    "name",
-			Aliases: []string{"n"},
-			Usage:   "`NAME` of the subnet",
-		},
-		&cli.StringFlag{
-			Name:    "id",
-			Aliases: []string{"i"},
-			Usage:   "`ID` of the subnet",
-		},
-		&cli.StringFlag{
-			Name:    "vlan-id",
-			Aliases: []string{"vi"},
-			Usage:   "`VLAN-ID` of the subnet",
+	globalFlags(
+		[]cli.Flag{
+			&cli.StringFlag{
+				Name:    "name",
+				Aliases: []string{"n"},
+				Usage:   "`NAME` of the subnet",
+			},
+			&cli.StringFlag{
+				Name:    "id",
+				Aliases: []string{"i"},
+				Usage:   "`ID` of the subnet",
+			},
+			&cli.StringFlag{
+				Name:    "vlan-id",
+				Aliases: []string{"vi"},
+				Usage:   "`VLAN-ID` of the subnet",
+			},
 		},
 	)
 	return &cli.Command{
@@ -66,6 +69,12 @@ func ipamSubnetSuggest(app *cli.App) *cli.Command {
 			Usage:    "the mask bits for the suggested subnet",
 			Required: true,
 		},
+		&cli.StringFlag{
+			Name:     "name",
+			Aliases:  []string{"n"},
+			Usage:    "`NAME` of the subnet",
+			Required: true,
+		},
 		&cli.BoolFlag{
 			Name:     "create",
 			Aliases:  []string{"c"},
@@ -81,23 +90,25 @@ func ipamSubnetSuggest(app *cli.App) *cli.Command {
 		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
-			subnet, err := api.SuggestSubnet(c.Int("subnet-id"), c.Int("mask-bits"))
+			subnet, err := api.SuggestSubnet(
+				c.Int("subnet-id"),
+				c.Int("mask-bits"),
+				c.String("name"),
+				c.Bool("create"),
+			)
 			if err != nil {
 				return err
-			}
-
-			if c.Bool("create") {
-				err = api.CreateChildSubnet(c.Int("subnet-id"), c.Int("mask-bits"))
-				if err != nil {
-					return err
-				}
 			}
 
 			switch c.String("format") {
 			case "json":
 				fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
 			default:
-				fmt.Print(output.FormatItemAsList(&subnet, []string{"Network", "MaskBits", "Name"}))
+				if c.Bool("create") {
+					fmt.Print(output.FormatItemAsList(&subnet, []string{"SubnetID", "Network", "MaskBits", "Name"}))
+				} else {
+					fmt.Print(output.FormatItemAsList(&subnet, []string{"Network", "MaskBits"}))
+				}
 			}
 			return nil
 		},
@@ -105,8 +116,7 @@ func ipamSubnetSuggest(app *cli.App) *cli.Command {
 }
 
 func ipamSubnetSet(app *cli.App) *cli.Command {
-	flags := globalFlags()
-	flags = append(flags,
+	flags := []cli.Flag{
 		&cli.StringFlag{
 			Name:     "network",
 			Aliases:  []string{"net"},
@@ -125,7 +135,14 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 			Usage:    "`NAME` of the subnet",
 			Required: false,
 		},
-	)
+		&cli.StringFlag{
+			Name:     "vrf-group",
+			Aliases:  []string{"vg"},
+			Usage:    "`VRF-GROUP` of the subnet",
+			Required: false,
+		},
+	}
+
 	return &cli.Command{
 		Name:    "set",
 		Usage:   "add or update a subnet",
@@ -137,14 +154,31 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 				Name:     c.String("name"),
 				Network:  c.String("network"),
 				MaskBits: c.Int("mask-bits"),
+				VrfGroup: c.String("vrf-group"),
 			}
 
-			err := api.CreateSubnet(&subnet)
+			resp, err := api.SetSubnet(&subnet)
 			if err != nil {
 				return err
 			}
 
-			output.FormatItemAsList(subnet, []string{"Name", "Network", "MaskBits"})
+			var s *device42.Subnet
+
+			if resp.Code == 0 {
+				s, err = api.GetSubnetById(int(resp.Message[1].(float64)))
+				if err != nil {
+					return err
+				}
+			} else {
+				return errors.New(resp.Message[0].(string))
+			}
+
+			switch c.String("format") {
+			case "json":
+				fmt.Printf("%s\n", output.FormatItemAsJson(s))
+			default:
+				fmt.Print(output.FormatItemAsList(s, []string{"SubnetID", "Name", "Network", "MaskBits", "VrfGroupName"}))
+			}
 
 			return nil
 		},
@@ -152,7 +186,7 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 }
 
 func ipamSubnetList(app *cli.App) *cli.Command {
-	flags := globalFlags()
+	flags := globalFlags(nil)
 
 	return &cli.Command{
 		Name:    "list",
@@ -161,13 +195,8 @@ func ipamSubnetList(app *cli.App) *cli.Command {
 		Flags:   flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
-			var (
-				err     error
-				subnets *[]device42.Subnet
-			)
 
-			subnets, err = api.Subnets()
-
+			subnets, err := api.GetSubnets()
 			if err != nil {
 				return err
 			}
@@ -186,7 +215,7 @@ func ipamSubnetList(app *cli.App) *cli.Command {
 				data := [][]string{}
 				for _, i := range *subnets {
 					data = append(data,
-						[]string{strconv.Itoa(i.SubnetID), i.Name, i.Network, strconv.Itoa(i.MaskBits), strconv.Itoa(i.ParentVlanID)},
+						[]string{strconv.Itoa(i.SubnetID), i.Name, i.Network, strconv.Itoa(i.MaskBits), strconv.Itoa(i.ParentVlanID), i.VrfGroupName},
 					)
 				}
 				headers := []string{"ID", "Name", "Network", "MaskBits", "VLAN ID"}
