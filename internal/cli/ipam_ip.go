@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/chopnico/device42"
+	device42 "github.com/chopnico/device42-go"
 
 	"github.com/chopnico/output"
 	"github.com/urfave/cli/v2"

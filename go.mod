@@ -1,4 +1,4 @@
-module github.com/chopnico/device42
+module github.com/chopnico/device42-go
 
 go 1.16
 
