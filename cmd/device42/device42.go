@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/chopnico/device42"
+	device42 "github.com/chopnico/device42-go"
 
-	CLI "github.com/chopnico/device42/internal/cli"
+	CLI "github.com/chopnico/device42-go/internal/cli"
 
 	"github.com/urfave/cli/v2"
 )
