@@ -179,26 +179,6 @@ func (api *Api) GetSubnetByName(name string) (*[]Subnet, error) {
 	return &subnets.List, nil
 }
 
-// gets a subnet by id
-func (api *Api) SubnetById(id string) (*[]Subnet, error) {
-	id = url.QueryEscape(id)
-	s := ipamSubnetsPath + "?subnet_id=" + id
-
-	b, err := api.Do("GET", s, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	subnets := Subnets{}
-
-	err = json.Unmarshal(b, &subnets)
-	if err != nil {
-		return nil, err
-	}
-
-	return &subnets.List, nil
-}
-
 // gets a subnet by vlan id
 func (api *Api) GetSubnetByVlanId(id string) (*[]Subnet, error) {
 	id = url.QueryEscape(id)

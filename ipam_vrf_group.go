@@ -27,7 +27,7 @@ type VrfGroups struct {
 }
 
 // retrieve all vrf groups
-func (api *Api) VrfGroups() (*[]VrfGroup, error) {
+func (api *Api) GetVrfGroups() (*[]VrfGroup, error) {
 	b, err := api.Do("GET", ipamVrfGroupPath, nil)
 	if err != nil {
 		return nil, err

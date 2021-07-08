@@ -177,7 +177,7 @@ func ipamVrfGroupList(app *cli.App) *cli.Command {
 		Flags:   flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
-			vrfGroups, err := api.VrfGroups()
+			vrfGroups, err := api.GetVrfGroups()
 			if err != nil {
 				return err
 			}
