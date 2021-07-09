@@ -71,6 +71,12 @@ func ipamVrfGroupSet(app *cli.App) *cli.Command {
 			Usage:    "`DESCRIPTION` of the vrf group",
 			Required: false,
 		},
+		&cli.StringFlag{
+			Name:     "buildings",
+			Aliases:  []string{"b"},
+			Usage:    "`BUILDINGS` where this vrf group is configured",
+			Required: false,
+		},
 	}
 
 	return &cli.Command{
@@ -81,9 +87,12 @@ func ipamVrfGroupSet(app *cli.App) *cli.Command {
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 
+			buildings := strings.Split(c.String("buildings"), ",")
+
 			vrfGroup := device42.VrfGroup{
 				Name:        c.String("name"),
 				Description: c.String("description"),
+				Buildings:   buildings,
 			}
 
 			vg, err := api.SetVrfGroup(&vrfGroup)

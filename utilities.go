@@ -3,6 +3,7 @@ package device42
 import (
 	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 
 	"github.com/chopnico/structs"
@@ -24,7 +25,16 @@ func parameters(i interface{}) url.Values {
 			case "post":
 				jtags := strings.Split(f.Tag("json"), ",")
 				if !f.IsZero() {
-					d.Set(jtags[0], fmt.Sprintf("%v", f.Value()))
+					switch f.Kind() {
+					case reflect.Slice:
+						if _, ok := f.Value().([]string); ok {
+							for _, i := range f.Value().([]string) {
+								d.Set(jtags[0], fmt.Sprintf("%v", i))
+							}
+						}
+					default:
+						d.Set(jtags[0], url.QueryEscape(fmt.Sprintf("%v", f.Value())))
+					}
 				}
 			}
 		}
