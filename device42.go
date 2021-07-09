@@ -183,6 +183,7 @@ func NewApiBasicAuth(username string, password string, host string) (*Api, error
 // lots of debug logging code in here, but it's also the main method
 // for the client.
 // REVIEW : refactor
+// NOTES: it's pretty ugly
 func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, api.options["url"].(string)+path, body)
 	if api.isLoggingDebug() {
@@ -255,12 +256,23 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	switch resp.StatusCode {
 	case 200:
 		return b, nil
+	case fiveHundred(resp.StatusCode):
+		return nil, errors.New(fmt.Sprintf("%s", resp.Status))
 	default:
 		e := newApiResponse(b)
 		if api.isLoggingDebug() {
+			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			return nil, errors.New("debugging")
 		}
 		return nil, errors.New(fmt.Sprintf("%s", e.Message))
 	}
+}
+
+func fiveHundred(i int) int {
+	if i >= 500 && i <= 599 {
+		return i
+	}
+
+	return 0
 }
