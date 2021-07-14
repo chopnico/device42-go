@@ -26,22 +26,18 @@ func ipamVrfGroupCommands(app *cli.App) []*cli.Command {
 }
 
 func ipamVrfGroupDelete(app *cli.App) *cli.Command {
-	flags := globalFlags(
-		[]cli.Flag{
-			&cli.StringFlag{
-				Name:     "id",
-				Aliases:  []string{"i"},
-				Usage:    "id of the vrf group",
-				Required: true,
-			},
+	flags := []cli.Flag{
+		&cli.StringFlag{
+			Name:     "id",
+			Usage:    "id of the vrf group",
+			Required: true,
 		},
-	)
+	}
 
 	return &cli.Command{
-		Name:    "delete",
-		Aliases: []string{"d"},
-		Usage:   "delet a vrf group",
-		Flags:   flags,
+		Name:  "delete",
+		Usage: "delete a vrf group",
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 
@@ -61,29 +57,25 @@ func ipamVrfGroupSet(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
 		&cli.StringFlag{
 			Name:     "name",
-			Aliases:  []string{"n"},
 			Usage:    "`NAME` of the vrf group",
 			Required: true,
 		},
 		&cli.StringFlag{
 			Name:     "description",
-			Aliases:  []string{"d"},
 			Usage:    "`DESCRIPTION` of the vrf group",
 			Required: false,
 		},
 		&cli.StringFlag{
 			Name:     "buildings",
-			Aliases:  []string{"b"},
 			Usage:    "`BUILDINGS` where this vrf group is configured",
 			Required: false,
 		},
 	}
 
 	return &cli.Command{
-		Name:    "set",
-		Aliases: []string{"s"},
-		Usage:   "set a vrf group",
-		Flags:   flags,
+		Name:  "set",
+		Usage: "set a vrf group",
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 
@@ -117,28 +109,27 @@ func ipamVrfGroupSet(app *cli.App) *cli.Command {
 }
 
 func ipamVrfGroupGet(app *cli.App) *cli.Command {
-	flags := globalFlags(
-		[]cli.Flag{
-			&cli.IntFlag{
-				Name:     "id",
-				Aliases:  []string{"i"},
-				Usage:    "name of the vrf group",
-				Required: false,
+	flags := addQuietFlag(
+		addDisplayFlags(
+			[]cli.Flag{
+				&cli.IntFlag{
+					Name:     "id",
+					Usage:    "name of the vrf group",
+					Required: false,
+				},
+				&cli.StringFlag{
+					Name:     "name",
+					Usage:    "name of the vrf group",
+					Required: false,
+				},
 			},
-			&cli.StringFlag{
-				Name:     "name",
-				Aliases:  []string{"n"},
-				Usage:    "name of the vrf group",
-				Required: false,
-			},
-		},
+		),
 	)
 
 	return &cli.Command{
-		Name:    "get",
-		Aliases: []string{"g"},
-		Usage:   "get a vrf a group",
-		Flags:   flags,
+		Name:  "get",
+		Usage: "get a vrf a group",
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 			var (
@@ -177,13 +168,12 @@ func ipamVrfGroupGet(app *cli.App) *cli.Command {
 }
 
 func ipamVrfGroupList(app *cli.App) *cli.Command {
-	flags := globalFlags(nil)
+	flags := addQuietFlag(addDisplayFlags(nil))
 
 	return &cli.Command{
-		Name:    "list",
-		Aliases: []string{"l"},
-		Usage:   "list a all vrf groups",
-		Flags:   flags,
+		Name:  "list",
+		Usage: "list a all vrf groups",
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 			vrfGroups, err := api.GetVrfGroups()
@@ -191,25 +181,31 @@ func ipamVrfGroupList(app *cli.App) *cli.Command {
 				return err
 			}
 
-			switch c.String("format") {
-			case "json":
-				fmt.Print(output.FormatItemsAsJson(vrfGroups))
-			case "list":
-				if c.String("properties") == "" {
-					fmt.Print(output.FormatItemsAsList(vrfGroups, nil))
-				} else {
-					p := strings.Split(c.String("properties"), ",")
-					fmt.Print(output.FormatItemsAsList(vrfGroups, p))
-				}
-			default:
-				data := [][]string{}
+			if c.Bool("quiet") {
 				for _, i := range *vrfGroups {
-					data = append(data,
-						[]string{strconv.Itoa(i.ID), i.Name, strings.Join(i.Buildings, ",")},
-					)
+					fmt.Println(i.ID)
 				}
-				headers := []string{"ID", "Name", "Buildings"}
-				fmt.Print(output.FormatTable(data, headers))
+			} else {
+				switch c.String("format") {
+				case "json":
+					fmt.Print(output.FormatItemsAsJson(vrfGroups))
+				case "list":
+					if c.String("properties") == "" {
+						fmt.Print(output.FormatItemsAsList(vrfGroups, nil))
+					} else {
+						p := strings.Split(c.String("properties"), ",")
+						fmt.Print(output.FormatItemsAsList(vrfGroups, p))
+					}
+				default:
+					data := [][]string{}
+					for _, i := range *vrfGroups {
+						data = append(data,
+							[]string{strconv.Itoa(i.ID), i.Name, strings.Join(i.Buildings, ",")},
+						)
+					}
+					headers := []string{"ID", "Name", "Buildings"}
+					fmt.Print(output.FormatTable(data, headers))
+				}
 			}
 			return nil
 		},

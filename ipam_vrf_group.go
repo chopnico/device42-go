@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/chopnico/device42-go/internal/utilities"
 )
 
 // vrf group paths
@@ -91,7 +93,7 @@ func (api *Api) GetVrfGroupById(i int) (*VrfGroup, error) {
 
 // create a vrf group
 func (api *Api) SetVrfGroup(v *VrfGroup) (*VrfGroup, error) {
-	b := strings.NewReader(parameters(v).Encode())
+	b := strings.NewReader(utilities.PostParameters(v).Encode())
 	_, err := api.Do("POST", ipamVrfGroupPath, b)
 	if err != nil {
 		return nil, err
@@ -114,7 +116,7 @@ func (api *Api) UpdateVrfGroup(id int, v *VrfGroup) (*VrfGroup, error) {
 
 	v.ID = id
 
-	b := strings.NewReader(parameters(v).Encode())
+	b := strings.NewReader(utilities.PostParameters(v).Encode())
 	_, err = api.Do("POST", ipamVrfGroupPath, b)
 	if err != nil {
 		return nil, err

@@ -27,22 +27,22 @@ func ipamSubnetCommands(app *cli.App) []*cli.Command {
 }
 
 func ipamSubnetGet(app *cli.App) *cli.Command {
-	flags := globalFlags(
-		[]cli.Flag{
-			&cli.IntFlag{
-				Name:     "id",
-				Aliases:  []string{"i"},
-				Usage:    "`ID` of the subnet",
-				Required: true,
+	flags := addQuietFlag(
+		addDisplayFlags(
+			[]cli.Flag{
+				&cli.IntFlag{
+					Name:     "id",
+					Usage:    "`ID` of the subnet",
+					Required: true,
+				},
 			},
-		},
+		),
 	)
 
 	return &cli.Command{
-		Name:    "get",
-		Aliases: []string{"g"},
-		Usage:   "get a subnet",
-		Flags:   flags,
+		Name:  "get",
+		Usage: "get a subnet",
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 			subnet, err := api.GetSubnetById(c.Int("id"))
@@ -50,15 +50,18 @@ func ipamSubnetGet(app *cli.App) *cli.Command {
 				return err
 			}
 
-			switch c.String("format") {
-			case "json":
-				fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
-			default:
-				if c.String("properties") == "" {
-					fmt.Print(output.FormatItemAsList(&subnet, nil))
-				} else {
-					p := strings.Split(c.String("properties"), ",")
-					fmt.Print(output.FormatItemAsList(&subnet, p))
+			if c.Bool("quiet") {
+			} else {
+				switch c.String("format") {
+				case "json":
+					fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
+				default:
+					if c.String("properties") == "" {
+						fmt.Print(output.FormatItemAsList(&subnet, nil))
+					} else {
+						p := strings.Split(c.String("properties"), ",")
+						fmt.Print(output.FormatItemAsList(&subnet, p))
+					}
 				}
 			}
 
@@ -71,25 +74,21 @@ func ipamSubnetSuggest(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
 		&cli.IntFlag{
 			Name:     "subnet-id",
-			Aliases:  []string{"s"},
 			Usage:    "the parent `SUBNET-ID` to suggest a subnet from",
 			Required: true,
 		},
 		&cli.IntFlag{
 			Name:     "mask-bits",
-			Aliases:  []string{"m"},
 			Usage:    "the mask bits for the suggested subnet",
 			Required: true,
 		},
 		&cli.StringFlag{
 			Name:     "name",
-			Aliases:  []string{"n"},
 			Usage:    "`NAME` of the subnet",
 			Required: true,
 		},
 		&cli.BoolFlag{
 			Name:     "create",
-			Aliases:  []string{"c"},
 			Usage:    "should we go ahead and `CREATE` the subnet",
 			Value:    false,
 			Required: false,
@@ -128,35 +127,30 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
 		&cli.StringFlag{
 			Name:     "network",
-			Aliases:  []string{"net"},
 			Usage:    "`NETWORK` address of the subnet",
 			Required: true,
 		},
 		&cli.IntFlag{
 			Name:     "mask-bits",
-			Aliases:  []string{"m", "mask"},
 			Usage:    "`MASK-BITS` of the subnet",
 			Required: true,
 		},
 		&cli.StringFlag{
 			Name:     "name",
-			Aliases:  []string{"n"},
 			Usage:    "`NAME` of the subnet",
 			Required: false,
 		},
 		&cli.StringFlag{
 			Name:     "vrf-group",
-			Aliases:  []string{"vg"},
 			Usage:    "`VRF-GROUP` of the subnet",
 			Required: false,
 		},
 	}
 
 	return &cli.Command{
-		Name:    "set",
-		Usage:   "add or update a subnet",
-		Aliases: []string{"s"},
-		Flags:   flags,
+		Name:  "set",
+		Usage: "add or update a subnet",
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 			subnet := device42.Subnet{
@@ -200,13 +194,12 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 }
 
 func ipamSubnetList(app *cli.App) *cli.Command {
-	flags := globalFlags(nil)
+	flags := addQuietFlag(addDisplayFlags(nil))
 
 	return &cli.Command{
-		Name:    "list",
-		Aliases: []string{"l"},
-		Usage:   "list all subnets",
-		Flags:   flags,
+		Name:  "list",
+		Usage: "list all subnets",
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 
@@ -215,25 +208,31 @@ func ipamSubnetList(app *cli.App) *cli.Command {
 				return err
 			}
 
-			switch c.String("format") {
-			case "json":
-				fmt.Print(output.FormatItemsAsJson(subnets))
-			case "list":
-				if c.String("properties") == "" {
-					fmt.Print(output.FormatItemsAsList(subnets, nil))
-				} else {
-					p := strings.Split(c.String("properties"), ",")
-					fmt.Print(output.FormatItemsAsList(subnets, p))
-				}
-			default:
-				data := [][]string{}
+			if c.Bool("quiet") {
 				for _, i := range *subnets {
-					data = append(data,
-						[]string{strconv.Itoa(i.SubnetID), i.Name, i.Network, strconv.Itoa(i.MaskBits), strconv.Itoa(i.ParentVlanID), i.VrfGroupName},
-					)
+					fmt.Println(i.SubnetID)
 				}
-				headers := []string{"ID", "Name", "Network", "MaskBits", "VLAN ID"}
-				fmt.Print(output.FormatTable(data, headers))
+			} else {
+				switch c.String("format") {
+				case "json":
+					fmt.Print(output.FormatItemsAsJson(subnets))
+				case "list":
+					if c.String("properties") == "" {
+						fmt.Print(output.FormatItemsAsList(subnets, nil))
+					} else {
+						p := strings.Split(c.String("properties"), ",")
+						fmt.Print(output.FormatItemsAsList(subnets, p))
+					}
+				default:
+					data := [][]string{}
+					for _, i := range *subnets {
+						data = append(data,
+							[]string{strconv.Itoa(i.SubnetID), i.Name, i.Network, strconv.Itoa(i.MaskBits), strconv.Itoa(i.ParentVlanID), i.VrfGroupName},
+						)
+					}
+					headers := []string{"ID", "Name", "Network", "MaskBits", "VLAN ID"}
+					fmt.Print(output.FormatTable(data, headers))
+				}
 			}
 			return nil
 		},

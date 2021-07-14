@@ -1,4 +1,4 @@
-package device42
+package utilities
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 // 		  dynamic structs based on particular tags. this will be helpful
 // 		  accross this library as device42 requires parameters instead of
 // 		  a post body
-func parameters(i interface{}) url.Values {
+func PostParameters(i interface{}) url.Values {
 	d := url.Values{}
 	z := structs.New(i)
 
@@ -33,7 +33,7 @@ func parameters(i interface{}) url.Values {
 							}
 						}
 					default:
-						d.Set(jtags[0], url.QueryEscape(fmt.Sprintf("%v", f.Value())))
+						d.Set(jtags[0], fmt.Sprintf("%v", f.Value()))
 					}
 				}
 			}

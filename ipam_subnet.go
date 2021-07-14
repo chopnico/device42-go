@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/chopnico/device42-go/internal/utilities"
 )
 
 const (
@@ -62,7 +64,7 @@ type childSubnet struct {
 // create a subnet
 // requires a subnet type
 func (api *Api) SetSubnet(subnet *Subnet) (*ApiResponse, error) {
-	s := strings.NewReader(parameters(subnet).Encode())
+	s := strings.NewReader(utilities.PostParameters(subnet).Encode())
 	b, err := api.Do("POST", ipamSubnetsPath, s)
 	if err != nil {
 		return nil, err
@@ -84,7 +86,7 @@ func (api *Api) SetChildSubnet(parentId, maskBits int) error {
 		ParentSubnetId: parentId,
 		MaskBits:       maskBits,
 	}
-	s := strings.NewReader(parameters(subnet).Encode())
+	s := strings.NewReader(utilities.PostParameters(subnet).Encode())
 	_, err := api.Do("POST", ipamSubnetsPath+ipamCreateChildSubnetPath, s)
 	if err != nil {
 		return err
