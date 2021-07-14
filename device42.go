@@ -256,8 +256,22 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	switch resp.StatusCode {
 	case 200:
 		return b, nil
-	case fiveHundred(resp.StatusCode):
-		return nil, errors.New(fmt.Sprintf("%s", resp.Status))
+	case 400:
+		return nil, errors.New("bad request... stop it")
+	case 401:
+		return nil, errors.New("unauthorized... don't think so")
+	case 403:
+		return nil, errors.New("forbidden... get out of here")
+	case 404:
+		return nil, errors.New("resource not found... it's gone")
+	case 405:
+		return nil, errors.New("method not allowed... what're you trying pull?")
+	case 410:
+		return nil, errors.New("gone... was it even real?")
+	case 500:
+		return nil, errors.New("internal server error... are stuff is broke")
+	case 503:
+		return nil, errors.New("service unavaliable... not sure what's going on")
 	default:
 		e := newApiResponse(b)
 		if api.isLoggingDebug() {
@@ -267,12 +281,4 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 		}
 		return nil, errors.New(fmt.Sprintf("%s", e.Message))
 	}
-}
-
-func fiveHundred(i int) int {
-	if i >= 500 && i <= 599 {
-		return i
-	}
-
-	return 0
 }

@@ -21,16 +21,18 @@ func ipamIpCommands(app *cli.App) []*cli.Command {
 }
 
 func ipamIpClear(app *cli.App) *cli.Command {
+	flags := []cli.Flag{
+		&cli.StringFlag{
+			Name:     "address",
+			Usage:    "`ADDRESS` to clear",
+			Required: true,
+		},
+	}
+
 	return &cli.Command{
 		Name:  "clear",
 		Usage: "clear an ip address",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "address",
-				Usage:    "`ADDRESS` to clear",
-				Required: true,
-			},
-		},
+		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
 			err := api.ClearIp(c.String("address"))

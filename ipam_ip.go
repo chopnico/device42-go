@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/chopnico/device42-go/internal/utilities"
 )
 
 const (
@@ -87,7 +89,7 @@ func (api *Api) ClearIp(ip string) error {
 		Address: ip,
 		Clear:   "yes",
 	}
-	s := strings.NewReader(parameters(i).Encode())
+	s := strings.NewReader(utilities.PostParameters(i).Encode())
 	_, err := api.Do("POST", ipamIpsPath, s)
 	if err != nil {
 		return err
