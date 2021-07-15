@@ -269,7 +269,7 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	case 410:
 		return nil, errors.New("gone... was it even real?")
 	case 500:
-		return nil, errors.New("internal server error... are stuff is broke")
+		return nil, errors.New("internal server error... our stuff is broke")
 	case 503:
 		return nil, errors.New("service unavaliable... not sure what's going on")
 	default:

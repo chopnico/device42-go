@@ -132,7 +132,7 @@ func (api *Api) UpdateVrfGroup(id int, v *VrfGroup) (*VrfGroup, error) {
 
 // delete a vrf group
 func (api *Api) DeleteVrfGroup(id int) error {
-	_, err := api.Do("DELETE", ipamVrfGroupPath+strconv.Itoa(id), nil)
+	_, err := api.Do("DELETE", ipamVrfGroupPath+strconv.Itoa(id)+"/", nil)
 	if err != nil {
 		return err
 	}
