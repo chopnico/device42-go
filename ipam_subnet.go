@@ -2,6 +2,7 @@ package device42
 
 import (
 	"encoding/json"
+	"errors"
 	"net/url"
 	"strconv"
 	"strings"
@@ -63,7 +64,7 @@ type childSubnet struct {
 
 // create a subnet
 // requires a subnet type
-func (api *Api) SetSubnet(subnet *Subnet) (*ApiResponse, error) {
+func (api *Api) SetSubnet(subnet *Subnet) (*Subnet, error) {
 	s := strings.NewReader(utilities.PostParameters(subnet).Encode())
 	b, err := api.Do("POST", ipamSubnetsPath, s)
 	if err != nil {
@@ -75,8 +76,16 @@ func (api *Api) SetSubnet(subnet *Subnet) (*ApiResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	if apiResponse.Code == 0 {
+		subnet, err = api.GetSubnetById(int(apiResponse.Message[1].(float64)))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, errors.New(apiResponse.Message[0].(string))
+	}
 
-	return &apiResponse, nil
+	return subnet, nil
 }
 
 // create a child subnet
@@ -115,7 +124,7 @@ func (api *Api) SuggestSubnet(parentId, maskBits int, name string, create bool) 
 	}
 
 	if create {
-		x, err := api.SetSubnet(
+		subnet, err = api.SetSubnet(
 			&Subnet{
 				Network:        resp.Network,
 				MaskBits:       resp.MaskBits,
@@ -126,12 +135,6 @@ func (api *Api) SuggestSubnet(parentId, maskBits int, name string, create bool) 
 		)
 		if err != nil {
 			return nil, err
-		}
-		if x.Code == 0 {
-			subnet, err = api.GetSubnetById(int(x.Message[1].(float64)))
-			if err != nil {
-				return nil, err
-			}
 		}
 	} else {
 		subnet.Network = resp.Network
