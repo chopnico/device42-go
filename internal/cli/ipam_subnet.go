@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -124,7 +123,7 @@ func ipamSubnetSuggest(app *cli.App) *cli.Command {
 }
 
 func ipamSubnetSet(app *cli.App) *cli.Command {
-	flags := []cli.Flag{
+	flags := addQuietFlag([]cli.Flag{
 		&cli.StringFlag{
 			Name:     "network",
 			Usage:    "`NETWORK` address of the subnet",
@@ -145,7 +144,7 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 			Usage:    "`VRF-GROUP` of the subnet",
 			Required: false,
 		},
-	}
+	})
 
 	return &cli.Command{
 		Name:  "set",
@@ -153,38 +152,31 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value("api").(*device42.Api)
-			subnet := device42.Subnet{
+			subnet := &device42.Subnet{
 				Name:     c.String("name"),
 				Network:  c.String("network"),
 				MaskBits: c.Int("mask-bits"),
 				VrfGroup: c.String("vrf-group"),
 			}
 
-			resp, err := api.SetSubnet(&subnet)
+			subnet, err := api.SetSubnet(subnet)
 			if err != nil {
 				return err
 			}
 
-			var s *device42.Subnet
-
-			if resp.Code == 0 {
-				s, err = api.GetSubnetById(int(resp.Message[1].(float64)))
-				if err != nil {
-					return err
-				}
+			if c.Bool("quiet") {
+				fmt.Println(subnet.SubnetID)
 			} else {
-				return errors.New(resp.Message[0].(string))
-			}
-
-			switch c.String("format") {
-			case "json":
-				fmt.Printf("%s\n", output.FormatItemAsJson(s))
-			default:
-				if c.String("properties") == "" {
-					fmt.Print(output.FormatItemAsList(subnet, nil))
-				} else {
-					p := strings.Split(c.String("properties"), ",")
-					fmt.Print(output.FormatItemAsList(subnet, p))
+				switch c.String("format") {
+				case "json":
+					fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
+				default:
+					if c.String("properties") == "" {
+						fmt.Print(output.FormatItemAsList(subnet, nil))
+					} else {
+						p := strings.Split(c.String("properties"), ",")
+						fmt.Print(output.FormatItemAsList(subnet, p))
+					}
 				}
 			}
 
