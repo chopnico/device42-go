@@ -222,3 +222,15 @@ func (api *Api) GetSubnetById(id int) (*Subnet, error) {
 
 	return &subnets.List[0], nil
 }
+
+// gets a subnet by vlan id
+func (api *Api) DeleteSubnet(id int) error {
+	s := ipamSubnetsPath + strconv.Itoa(id) + "/"
+
+	_, err := api.Do("DELETE", s, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
