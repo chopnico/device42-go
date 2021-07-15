@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -20,50 +21,51 @@ func ipamSubnetCommands(app *cli.App) []*cli.Command {
 		ipamSubnetGet(app),
 		ipamSubnetSet(app),
 		ipamSubnetSuggest(app),
+		ipamSubnetDelete(app),
 	)
 
 	return commands
 }
 
 func ipamSubnetGet(app *cli.App) *cli.Command {
-	flags := addQuietFlag(
-		addDisplayFlags(
-			[]cli.Flag{
-				&cli.IntFlag{
-					Name:     "id",
-					Usage:    "`ID` of the subnet",
-					Required: true,
-				},
-			},
-		),
-	)
+	flags := addDisplayFlags(nil)
 
 	return &cli.Command{
-		Name:  "get",
-		Usage: "get a subnet",
-		Flags: flags,
+		Name:      "get",
+		Usage:     "get a subnet",
+		ArgsUsage: "ID",
+		Flags:     flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
-			subnet, err := api.GetSubnetById(c.Int("id"))
-			if err != nil {
-				return err
-			}
-
-			if c.Bool("quiet") {
+			if c.Args().Len() == 0 {
+				cli.ShowCommandHelp(c, "get")
+				return errors.New("you must supply a subnet id")
 			} else {
-				switch c.String("format") {
-				case "json":
-					fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
-				default:
-					if c.String("properties") == "" {
-						fmt.Print(output.FormatItemAsList(&subnet, nil))
-					} else {
-						p := strings.Split(c.String("properties"), ",")
-						fmt.Print(output.FormatItemAsList(&subnet, p))
+				api := c.Context.Value("api").(*device42.Api)
+				var id int
+				_, err := fmt.Sscan(c.Args().First(), &id)
+				if err != nil {
+					return err
+				}
+				subnet, err := api.GetSubnetById(id)
+				if err != nil {
+					return err
+				}
+
+				if c.Bool("quiet") {
+				} else {
+					switch c.String("format") {
+					case "json":
+						fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
+					default:
+						if c.String("properties") == "" {
+							fmt.Print(output.FormatItemAsList(&subnet, nil))
+						} else {
+							p := strings.Split(c.String("properties"), ",")
+							fmt.Print(output.FormatItemAsList(&subnet, p))
+						}
 					}
 				}
 			}
-
 			return nil
 		},
 	}
@@ -227,6 +229,37 @@ func ipamSubnetList(app *cli.App) *cli.Command {
 				}
 			}
 			return nil
+		},
+	}
+}
+
+func ipamSubnetDelete(app *cli.App) *cli.Command {
+	return &cli.Command{
+		Name:      "delete",
+		Usage:     "delete a subnet",
+		ArgsUsage: "ID",
+		Action: func(c *cli.Context) error {
+			if c.Args().Len() == 0 {
+				cli.ShowCommandHelp(c, "delete")
+				return errors.New("you must supply a subnet id")
+			} else {
+				for i := 0; i < c.Args().Len(); i++ {
+					api := c.Context.Value("api").(*device42.Api)
+
+					var id int
+					_, err := fmt.Sscan(c.Args().First(), &id)
+					if err != nil {
+						return err
+					}
+					err = api.DeleteSubnet(id)
+					if err != nil {
+						return err
+					}
+
+					fmt.Println("sucessfully deleted subnet with id " + strconv.Itoa(id))
+				}
+				return nil
+			}
 		},
 	}
 }

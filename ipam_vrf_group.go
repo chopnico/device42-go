@@ -19,7 +19,7 @@ type VrfGroup struct {
 	ID          int      `json:"id"`
 	Buildings   []string `json:"buildings" methods:"post"`
 	Description string   `json:"description" methods:"post"`
-	Groups      string   `json:"groups" methods:"post"`
+	Groups      string   `json:"groups,omitempty" methods:"post"`
 	Name        string   `json:"name" methods:"post" validate:"required"`
 }
 

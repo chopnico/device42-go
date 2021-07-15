@@ -26,29 +26,32 @@ func ipamVrfGroupCommands(app *cli.App) []*cli.Command {
 }
 
 func ipamVrfGroupDelete(app *cli.App) *cli.Command {
-	flags := []cli.Flag{
-		&cli.StringFlag{
-			Name:     "id",
-			Usage:    "id of the vrf group",
-			Required: true,
-		},
-	}
-
 	return &cli.Command{
-		Name:  "delete",
-		Usage: "delete a vrf group",
-		Flags: flags,
+		Name:      "delete",
+		Usage:     "delete a vrf group",
+		ArgsUsage: "ID",
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			if c.Args().Len() == 0 {
+				cli.ShowCommandHelp(c, "delete")
+				return errors.New("you must supply a vrf id")
+			} else {
+				for i := 0; i < c.Args().Len(); i++ {
+					api := c.Context.Value("api").(*device42.Api)
 
-			err := api.DeleteVrfGroup(c.Int("id"))
-			if err != nil {
-				return err
+					var id int
+					_, err := fmt.Sscan(c.Args().First(), &id)
+					if err != nil {
+						return err
+					}
+					err = api.DeleteVrfGroup(id)
+					if err != nil {
+						return err
+					}
+
+					fmt.Println("sucessfully deleted vrf group with id " + strconv.Itoa(id))
+				}
+				return nil
 			}
-
-			fmt.Println("sucessfully deleted vrf group with id " + strconv.Itoa(c.Int("id")))
-
-			return nil
 		},
 	}
 }
@@ -137,7 +140,7 @@ func ipamVrfGroupGet(app *cli.App) *cli.Command {
 				err      error
 			)
 
-			if c.String("id") != "" {
+			if c.Int("id") != 0 {
 				vrfGroup, err = api.GetVrfGroupById(c.Int("id"))
 				if err != nil {
 					return err
