@@ -3,6 +3,7 @@ package device42
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -81,6 +82,10 @@ func (api *Api) GetBuildingById(id int) (*[]Building, error) {
 	err = json.Unmarshal(b, &buildings)
 	if err != nil {
 		return nil, err
+	}
+
+	if api.isLoggingDebug() {
+		api.WriteToDebugLog(fmt.Sprintf("buildings : %v", buildings.List))
 	}
 
 	for _, i := range buildings.List {
