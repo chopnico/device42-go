@@ -166,8 +166,8 @@ func (api *Api) GetSubnets() (*[]Subnet, error) {
 
 // gets a subnet by name
 func (api *Api) GetSubnetByName(name string) (*Subnet, error) {
-	name = url.QueryEscape(name)
-	s := ipamSubnetsPath + "?name=" + name
+	qname := url.QueryEscape(name)
+	s := ipamSubnetsPath + "?name=" + qname
 
 	b, err := api.Do("GET", s, nil)
 	if err != nil {
