@@ -32,7 +32,7 @@ func ipamVrfGroupDelete(app *cli.App) *cli.Command {
 		ArgsUsage: "ID",
 		Action: func(c *cli.Context) error {
 			if c.Args().Len() == 0 {
-				cli.ShowCommandHelp(c, "delete")
+				_ = cli.ShowCommandHelp(c, "delete")
 				return errors.New("you must supply a vrf id")
 			} else {
 				for i := 0; i < c.Args().Len(); i++ {

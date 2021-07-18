@@ -105,7 +105,7 @@ func buildingGet(app *cli.App) *cli.Command {
 			} else if c.Int("id") != 0 {
 				buildings, err = api.GetBuildingById(c.Int("id"))
 			} else {
-				cli.ShowCommandHelp(c, "get")
+				_ = cli.ShowCommandHelp(c, "get")
 				return errors.New("you must supply a name")
 			}
 			if err != nil {
@@ -210,7 +210,7 @@ func buildingDelete(app *cli.App) *cli.Command {
 		ArgsUsage: "ID",
 		Action: func(c *cli.Context) error {
 			if c.Args().Len() == 0 {
-				cli.ShowCommandHelp(c, "delete")
+				_ = cli.ShowCommandHelp(c, "delete")
 				return errors.New("you must supply a building id")
 			} else {
 				for i := 0; i < c.Args().Len(); i++ {

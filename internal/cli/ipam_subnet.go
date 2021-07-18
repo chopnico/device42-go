@@ -37,7 +37,7 @@ func ipamSubnetGet(app *cli.App) *cli.Command {
 		Flags:     flags,
 		Action: func(c *cli.Context) error {
 			if c.Args().Len() == 0 {
-				cli.ShowCommandHelp(c, "get")
+				_ = cli.ShowCommandHelp(c, "get")
 				return errors.New("you must supply a subnet id")
 			} else {
 				api := c.Context.Value("api").(*device42.Api)
@@ -224,7 +224,7 @@ func ipamSubnetList(app *cli.App) *cli.Command {
 							[]string{strconv.Itoa(i.SubnetID), i.Name, i.Network, strconv.Itoa(i.MaskBits), strconv.Itoa(i.ParentVlanID), i.VrfGroupName},
 						)
 					}
-					headers := []string{"ID", "Name", "Network", "MaskBits", "VLAN ID"}
+					headers := []string{"ID", "Name", "Network", "MaskBits", "VLAN ID", "VRF Group"}
 					fmt.Print(output.FormatTable(data, headers))
 				}
 			}
@@ -240,7 +240,7 @@ func ipamSubnetDelete(app *cli.App) *cli.Command {
 		ArgsUsage: "ID",
 		Action: func(c *cli.Context) error {
 			if c.Args().Len() == 0 {
-				cli.ShowCommandHelp(c, "delete")
+				_ = cli.ShowCommandHelp(c, "delete")
 				return errors.New("you must supply a subnet id")
 			} else {
 				for i := 0; i < c.Args().Len(); i++ {
