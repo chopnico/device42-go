@@ -181,7 +181,11 @@ func (api *Api) GetSubnetByName(name string) (*Subnet, error) {
 		return nil, err
 	}
 
-	return &subnets.List[0], nil
+	if len(subnets.List) != 0 {
+		return &subnets.List[0], nil
+	} else {
+		return nil, errors.New("unable to find subnet with name " + name)
+	}
 }
 
 // gets a subnet by vlan id
