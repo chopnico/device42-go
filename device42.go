@@ -23,87 +23,88 @@ const (
 	apiPath        = "/api/" + apiVersion
 )
 
-// the api client
-type Api struct {
+// API type
+type API struct {
 	options    map[string]interface{}
 	httpClient *http.Client
 }
 
-// api error
-type ApiResponse struct {
+// APIResponse type
+type APIResponse struct {
 	Code    int           `json:"code"`
 	Message []interface{} `json:"msg"`
 }
 
-// REQUIRED: sets username
-func (api *Api) username(v string) *Api {
+// APIContextKey is a helper string key for contexts
+type APIContextKey string
+
+func (api *API) username(v string) *API {
 	api.option("username", v)
 	return api
 }
 
-// REQUIRED: sets password
-func (api *Api) password(v string) *Api {
+func (api *API) password(v string) *API {
 	api.option("password", v)
 	return api
 }
 
-// REQUIRED: sets host of firewall endpoint
-func (api *Api) url(v string) *Api {
+func (api *API) url(v string) *API {
 	api.option("url", v)
 	return api
 }
 
-// sets timeout
-func (api *Api) Timeout(v int) *Api {
+// Timeout will set client timeout
+func (api *API) Timeout(v int) *API {
 	api.option("timeout", v)
 	return api
 }
 
-// sets whether the http client should ignore ssl errors
-func (api *Api) IgnoreSslErrors() *Api {
+// IgnoreSSLErrors will tell the HTTP client to ignore SSL errors
+func (api *API) IgnoreSSLErrors() *API {
 	api.options["ignore-ssl"] = true
 	api.httpOptions()
 	return api
 }
 
-// sets the proxy for the http client
-func (api *Api) Proxy(v string) *Api {
+// Proxy will tell the HTTP client which proxy address should be used
+func (api *API) Proxy(v string) *API {
 	api.options["proxy"] = v
 	api.httpOptions()
 	return api
 }
 
-// sets the info logger
-func (api *Api) InfoLogger(v *log.Logger) *Api {
+// InfoLogger sets a custom InfoLogger
+func (api *API) InfoLogger(v *log.Logger) *API {
 	api.option("logger-info", v)
 	return api
 }
 
-// sets the debug logger
-func (api *Api) DebugLogger(v *log.Logger) *Api {
+// DebugLogger sets a custom DebugLogger
+func (api *API) DebugLogger(v *log.Logger) *API {
 	api.option("logger-debug", v)
 	return api
 }
 
-// sets the logging level
-func (api *Api) LoggingLevel(v string) *Api {
+// LoggingLevel sets the log level (info, debug)
+func (api *API) LoggingLevel(v string) *API {
 	api.option("logging-level", v)
 	return api
 }
 
-// debug writer
-func (api *Api) WriteToDebugLog(msg string) {
+// WriteToDebugLog will write entries to the debug logger
+func (api *API) WriteToDebugLog(msg string) {
 	logger := api.options["logger-debug"].(*log.Logger)
 	logger.Println(msg)
 }
 
-// info writer
-func (api *Api) WriteToInfoLog(msg string) {
+// WriteToInfoLog will write to the info logger
+func (api *API) WriteToInfoLog(msg string) {
 	logger := api.options["logger-info"].(*log.Logger)
 	logger.Println(msg)
 }
 
-func (api *Api) option(k string, v interface{}) {
+// option sets (and maybe create) options
+func (api *API) option(k string, v interface{}) {
 	if api.options == nil {
 		api.options = make(map[string]interface{})
 		api.option("logging-level", defaultLogging)
@@ -114,8 +115,8 @@ func (api *Api) option(k string, v interface{}) {
 	api.options[k] = v
 }
 
-// Build HTTP client options
-func (api Api) httpOptions() {
+// httpOptions will build the HTTP client
+func (api API) httpOptions() {
 	tr := &http.Transport{}
 
 	if api.options["ignore-ssl"].(bool) {
@@ -132,41 +133,42 @@ func (api Api) httpOptions() {
 	api.httpClient.Timeout = time.Duration(api.options["timeout"].(int)) * time.Second
 }
 
-// create the default debug logger
+// defaultInfoLogger creates an info logger
 func defaultInfoLogger() *log.Logger {
 	return log.New(os.Stderr, "[INFO] ", log.LstdFlags)
 }
 
-// create the default debug logger
+// defaultDebugLogger creates a debug logger
 func defaultDebugLogger() *log.Logger {
 	return log.New(os.Stderr, "[DEBUG] ", log.LstdFlags)
 }
 
-func newApiResponse(b []byte) ApiResponse {
-	r := ApiResponse{}
+// newAPIResponse creates a new api response
+func newAPIResponse(b []byte) APIResponse {
+	r := APIResponse{}
 	json.Unmarshal(b, &r)
 	return r
 }
 
-// checks to see if logging level is set to debug
-func (api *Api) isLoggingDebug() bool {
+// isLoggingDebug checks if logging level is set to debug
+func (api *API) isLoggingDebug() bool {
 	if api.options["logging-level"].(string) == "debug" {
 		return true
 	}
 	return false
 }
 
-// checks to see if logging level is set to info
-func (api *Api) isLoggingInfo() bool {
+// isLoggingInfo checks if logging level is set to info
+func (api *API) isLoggingInfo() bool {
 	if api.options["logging-level"].(string) == "info" {
 		return true
 	}
 	return false
 }
 
-// Creates a API client that uses basic auth
-func NewApiBasicAuth(username string, password string, host string) (*Api, error) {
-	api := Api{
+// NewAPIBasicAuth creates a new api client using basic authentication
+func NewAPIBasicAuth(username string, password string, host string) (*API, error) {
+	api := API{
 		httpClient: &http.Client{},
 	}
 
@@ -179,12 +181,10 @@ func NewApiBasicAuth(username string, password string, host string) (*Api, error
 	return &api, nil
 }
 
-// The main do function for an api request
-// lots of debug logging code in here, but it's also the main method
-// for the client.
+// Do is a wrapper function for the httpClient Do function
 // REVIEW : refactor
 // NOTES: it's pretty ugly
-func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
+func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, api.options["url"].(string)+path, body)
 	if api.isLoggingDebug() {
 		api.WriteToDebugLog("request url : " + req.URL.Host)
@@ -214,7 +214,7 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 		api.WriteToDebugLog("debug http client do")
 		if err != nil {
 			b, _ := ioutil.ReadAll(resp.Body)
-			e := newApiResponse(b)
+			e := newAPIResponse(b)
 			api.WriteToDebugLog(fmt.Sprintf("response message : %s", e.Message))
 			api.WriteToDebugLog("response status code : " + fmt.Sprintf("%d", e.Code))
 		}
@@ -242,7 +242,7 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if api.isLoggingDebug() {
-		e := newApiResponse(b)
+		e := newAPIResponse(b)
 
 		api.WriteToDebugLog("debug http client do")
 		api.WriteToDebugLog(fmt.Sprintf("response message : %s", e.Message))
@@ -273,12 +273,12 @@ func (api *Api) Do(method, path string, body io.Reader) ([]byte, error) {
 	case 503:
 		return nil, errors.New("service unavaliable... not sure what's going on")
 	default:
-		e := newApiResponse(b)
+		e := newAPIResponse(b)
 		if api.isLoggingDebug() {
 			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			return nil, errors.New("debugging")
 		}
-		return nil, errors.New(fmt.Sprintf("%s", e.Message))
+		return nil, fmt.Errorf("%s", e.Message)
 	}
 }

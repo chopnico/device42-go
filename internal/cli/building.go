@@ -33,7 +33,7 @@ func buildingList(app *cli.App) *cli.Command {
 		Usage: "lists all buildings",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 			buildings, err := api.GetBuildings()
 			if err != nil {
 				return err
@@ -94,7 +94,7 @@ func buildingGet(app *cli.App) *cli.Command {
 		Usage: "get a building",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 			var (
 				buildings *[]device42.Building
 				err       error
@@ -103,7 +103,7 @@ func buildingGet(app *cli.App) *cli.Command {
 			if c.String("name") != "" {
 				buildings, err = api.GetBuildingByName(c.String("name"))
 			} else if c.Int("id") != 0 {
-				buildings, err = api.GetBuildingById(c.Int("id"))
+				buildings, err = api.GetBuildingByID(c.Int("id"))
 			} else {
 				_ = cli.ShowCommandHelp(c, "get")
 				return errors.New("you must supply a name")
@@ -173,7 +173,7 @@ func buildingSet(app *cli.App) *cli.Command {
 		Usage: "create or update a building",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 
 			building := device42.Building{
 				Name:        c.String("name"),
@@ -212,24 +212,23 @@ func buildingDelete(app *cli.App) *cli.Command {
 			if c.Args().Len() == 0 {
 				_ = cli.ShowCommandHelp(c, "delete")
 				return errors.New("you must supply a building id")
-			} else {
-				for i := 0; i < c.Args().Len(); i++ {
-					api := c.Context.Value("api").(*device42.Api)
-
-					var id int
-					_, err := fmt.Sscan(c.Args().First(), &id)
-					if err != nil {
-						return err
-					}
-					err = api.DeleteBuilding(id)
-					if err != nil {
-						return err
-					}
-
-					fmt.Println("sucessfully deleted building with id " + strconv.Itoa(id))
-				}
-				return nil
 			}
+			for i := 0; i < c.Args().Len(); i++ {
+				api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+
+				var id int
+				_, err := fmt.Sscan(c.Args().First(), &id)
+				if err != nil {
+					return err
+				}
+				err = api.DeleteBuilding(id)
+				if err != nil {
+					return err
+				}
+
+				fmt.Println("sucessfully deleted building with id " + strconv.Itoa(id))
+			}
+			return nil
 		},
 	}
 }

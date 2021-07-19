@@ -39,30 +39,30 @@ func ipamSubnetGet(app *cli.App) *cli.Command {
 			if c.Args().Len() == 0 {
 				_ = cli.ShowCommandHelp(c, "get")
 				return errors.New("you must supply a subnet id")
-			} else {
-				api := c.Context.Value("api").(*device42.Api)
-				var id int
-				_, err := fmt.Sscan(c.Args().First(), &id)
-				if err != nil {
-					return err
-				}
-				subnet, err := api.GetSubnetById(id)
-				if err != nil {
-					return err
-				}
+			}
 
-				if c.Bool("quiet") {
-				} else {
-					switch c.String("format") {
-					case "json":
-						fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
-					default:
-						if c.String("properties") == "" {
-							fmt.Print(output.FormatItemAsList(&subnet, nil))
-						} else {
-							p := strings.Split(c.String("properties"), ",")
-							fmt.Print(output.FormatItemAsList(&subnet, p))
-						}
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+			var id int
+			_, err := fmt.Sscan(c.Args().First(), &id)
+			if err != nil {
+				return err
+			}
+			subnet, err := api.GetSubnetByID(id)
+			if err != nil {
+				return err
+			}
+
+			if c.Bool("quiet") {
+			} else {
+				switch c.String("format") {
+				case "json":
+					fmt.Printf("%s\n", output.FormatItemAsJson(subnet))
+				default:
+					if c.String("properties") == "" {
+						fmt.Print(output.FormatItemAsList(&subnet, nil))
+					} else {
+						p := strings.Split(c.String("properties"), ",")
+						fmt.Print(output.FormatItemAsList(&subnet, p))
 					}
 				}
 			}
@@ -101,7 +101,7 @@ func ipamSubnetSuggest(app *cli.App) *cli.Command {
 		Usage: "suggest an subnet from a parent subnet",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 			subnet, err := api.SuggestSubnet(
 				c.Int("subnet-id"),
 				c.Int("mask-bits"),
@@ -153,7 +153,7 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 		Usage: "add or update a subnet",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 			subnet := &device42.Subnet{
 				Name:     c.String("name"),
 				Network:  c.String("network"),
@@ -195,7 +195,7 @@ func ipamSubnetList(app *cli.App) *cli.Command {
 		Usage: "list all subnets",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 
 			subnets, err := api.GetSubnets()
 			if err != nil {
@@ -242,24 +242,23 @@ func ipamSubnetDelete(app *cli.App) *cli.Command {
 			if c.Args().Len() == 0 {
 				_ = cli.ShowCommandHelp(c, "delete")
 				return errors.New("you must supply a subnet id")
-			} else {
-				for i := 0; i < c.Args().Len(); i++ {
-					api := c.Context.Value("api").(*device42.Api)
-
-					var id int
-					_, err := fmt.Sscan(c.Args().First(), &id)
-					if err != nil {
-						return err
-					}
-					err = api.DeleteSubnet(id)
-					if err != nil {
-						return err
-					}
-
-					fmt.Println("sucessfully deleted subnet with id " + strconv.Itoa(id))
-				}
-				return nil
 			}
+			for i := 0; i < c.Args().Len(); i++ {
+				api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+
+				var id int
+				_, err := fmt.Sscan(c.Args().First(), &id)
+				if err != nil {
+					return err
+				}
+				err = api.DeleteSubnet(id)
+				if err != nil {
+					return err
+				}
+
+				fmt.Println("sucessfully deleted subnet with id " + strconv.Itoa(id))
+			}
+			return nil
 		},
 	}
 }

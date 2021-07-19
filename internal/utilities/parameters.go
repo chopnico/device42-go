@@ -9,6 +9,7 @@ import (
 	"github.com/chopnico/structs"
 )
 
+// PostParameters will build a struct from methods:post tags
 // REVIEW: refactor
 // NOTES: i would like to extend the structs packages so that it can build
 // 		  dynamic structs based on particular tags. this will be helpful

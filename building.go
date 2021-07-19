@@ -11,10 +11,7 @@ import (
 	"github.com/chopnico/device42-go/internal/utilities"
 )
 
-const (
-	buildingsPath = "/buildings/"
-)
-
+// Building type
 type Building struct {
 	Address      string        `json:"address" methods:"post"`
 	BuildingID   int           `json:"building_id"`
@@ -25,13 +22,14 @@ type Building struct {
 	Notes        string        `json:"notes" methods:"post"`
 }
 
+// Buildings type
 type Buildings struct {
 	List []Building `json:"buildings"`
 }
 
-// retrieve all buildings
-func (api *Api) GetBuildings() (*[]Building, error) {
-	b, err := api.Do("GET", buildingsPath, nil)
+// GetBuildings will return a list of all buildings
+func (api *API) GetBuildings() (*[]Building, error) {
+	b, err := api.Do("GET", "/buildings/", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -46,10 +44,10 @@ func (api *Api) GetBuildings() (*[]Building, error) {
 	return &buildings.List, nil
 }
 
-// retrieve building by name
-func (api *Api) GetBuildingByName(n string) (*[]Building, error) {
+// GetBuildingByName will return a building by name
+func (api *API) GetBuildingByName(n string) (*[]Building, error) {
 	n = url.QueryEscape(n)
-	b, err := api.Do("GET", buildingsPath+"?name="+n, nil)
+	b, err := api.Do("GET", "/buildings/"+"?name="+n, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +68,9 @@ func (api *Api) GetBuildingByName(n string) (*[]Building, error) {
 
 }
 
-// retrieve building by id
-func (api *Api) GetBuildingById(id int) (*[]Building, error) {
-	b, err := api.Do("GET", buildingsPath, nil)
+// GetBuildingByID will return a building by id
+func (api *API) GetBuildingByID(id int) (*[]Building, error) {
+	b, err := api.Do("GET", "/buildings/", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +95,10 @@ func (api *Api) GetBuildingById(id int) (*[]Building, error) {
 	return nil, errors.New("unable to find building with id " + strconv.Itoa(id))
 }
 
-// create a building
-func (api *Api) SetBuilding(b *Building) (*[]Building, error) {
+// SetBuilding will create or update a building
+func (api *API) SetBuilding(b *Building) (*[]Building, error) {
 	s := strings.NewReader(utilities.PostParameters(b).Encode())
-	_, err := api.Do("POST", buildingsPath+"", s)
+	_, err := api.Do("POST", "/buildings/"+"", s)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +111,9 @@ func (api *Api) SetBuilding(b *Building) (*[]Building, error) {
 	return buildings, nil
 }
 
-// delete a building
-func (api *Api) DeleteBuilding(id int) error {
-	_, err := api.Do("DELETE", buildingsPath+strconv.Itoa(id)+"/", nil)
+// DeleteBuilding will delete a building by id
+func (api *API) DeleteBuilding(id int) error {
+	_, err := api.Do("DELETE", "/buildings/"+strconv.Itoa(id)+"/", nil)
 	if err != nil {
 		return err
 	}

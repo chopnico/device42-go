@@ -4,6 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// NewCommands builds all CLI commands
 func NewCommands(app *cli.App) {
 	app.Commands = append(app.Commands,
 		ipamCommands(app),

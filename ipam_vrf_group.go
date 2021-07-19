@@ -9,13 +9,8 @@ import (
 	"github.com/chopnico/device42-go/internal/utilities"
 )
 
-// vrf group paths
-const (
-	ipamVrfGroupPath = "/vrfgroup/"
-)
-
-// vrf group
-type VrfGroup struct {
+// VRFGroup type
+type VRFGroup struct {
 	ID          int      `json:"id"`
 	Buildings   []string `json:"buildings" methods:"post"`
 	Description string   `json:"description" methods:"post"`
@@ -23,19 +18,19 @@ type VrfGroup struct {
 	Name        string   `json:"name" methods:"post" validate:"required"`
 }
 
-// vrf groups
-type VrfGroups struct {
-	List []VrfGroup `json:"vrfgroup"`
+// VRFGroups type
+type VRFGroups struct {
+	List []VRFGroup `json:"vrfgroup"`
 }
 
-// retrieve all vrf groups
-func (api *Api) GetVrfGroups() (*[]VrfGroup, error) {
-	b, err := api.Do("GET", ipamVrfGroupPath, nil)
+// GetVRFGroups will return a list of all vrf groups
+func (api *API) GetVRFGroups() (*[]VRFGroup, error) {
+	b, err := api.Do("GET", "/vrfgroup/", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	vrfGroups := VrfGroups{}
+	vrfGroups := VRFGroups{}
 
 	err = json.Unmarshal(b, &vrfGroups)
 	if err != nil {
@@ -45,14 +40,14 @@ func (api *Api) GetVrfGroups() (*[]VrfGroup, error) {
 	return &vrfGroups.List, nil
 }
 
-// retrieve a vrf group by name
-func (api *Api) GetVrfGroupByName(n string) (*VrfGroup, error) {
-	b, err := api.Do("GET", ipamVrfGroupPath, nil)
+// GetVRFGroupByName will return a vrf group by name
+func (api *API) GetVRFGroupByName(n string) (*VRFGroup, error) {
+	b, err := api.Do("GET", "/vrfgroup/", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	vrfGroups := VrfGroups{}
+	vrfGroups := VRFGroups{}
 
 	err = json.Unmarshal(b, &vrfGroups)
 	if err != nil {
@@ -68,14 +63,14 @@ func (api *Api) GetVrfGroupByName(n string) (*VrfGroup, error) {
 	return nil, errors.New("could not find vrf group with name " + n)
 }
 
-// retrieve a vrf group by id
-func (api *Api) GetVrfGroupById(i int) (*VrfGroup, error) {
-	b, err := api.Do("GET", ipamVrfGroupPath, nil)
+// GetVRFGroupByID will return a vrf group by id
+func (api *API) GetVRFGroupByID(i int) (*VRFGroup, error) {
+	b, err := api.Do("GET", "/vrfgroup/", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	vrfGroups := VrfGroups{}
+	vrfGroups := VRFGroups{}
 
 	err = json.Unmarshal(b, &vrfGroups)
 	if err != nil {
@@ -91,15 +86,15 @@ func (api *Api) GetVrfGroupById(i int) (*VrfGroup, error) {
 	return nil, errors.New("could not find vrf group with id " + strconv.Itoa(i))
 }
 
-// create a vrf group
-func (api *Api) SetVrfGroup(v *VrfGroup) (*VrfGroup, error) {
+// SetVRFGroup will add or update a vrf group
+func (api *API) SetVRFGroup(v *VRFGroup) (*VRFGroup, error) {
 	b := strings.NewReader(utilities.PostParameters(v).Encode())
-	_, err := api.Do("POST", ipamVrfGroupPath, b)
+	_, err := api.Do("POST", "/vrfgroup/", b)
 	if err != nil {
 		return nil, err
 	}
 
-	vrfGroup, err := api.GetVrfGroupByName(v.Name)
+	vrfGroup, err := api.GetVRFGroupByName(v.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -107,32 +102,9 @@ func (api *Api) SetVrfGroup(v *VrfGroup) (*VrfGroup, error) {
 	return vrfGroup, nil
 }
 
-// update a vrf group
-func (api *Api) UpdateVrfGroup(id int, v *VrfGroup) (*VrfGroup, error) {
-	v, err := api.GetVrfGroupById(id)
-	if err != nil {
-		return nil, err
-	}
-
-	v.ID = id
-
-	b := strings.NewReader(utilities.PostParameters(v).Encode())
-	_, err = api.Do("POST", ipamVrfGroupPath, b)
-	if err != nil {
-		return nil, err
-	}
-
-	vrfGroup, err := api.GetVrfGroupById(v.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return vrfGroup, nil
-}
-
-// delete a vrf group
-func (api *Api) DeleteVrfGroup(id int) error {
-	_, err := api.Do("DELETE", ipamVrfGroupPath+strconv.Itoa(id)+"/", nil)
+// DeleteVRFGroup will delete a vrf group by id
+func (api *API) DeleteVRFGroup(id int) error {
+	_, err := api.Do("DELETE", "/vrfgroup/"+strconv.Itoa(id)+"/", nil)
 	if err != nil {
 		return err
 	}
