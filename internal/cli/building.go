@@ -96,14 +96,14 @@ func buildingGet(app *cli.App) *cli.Command {
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 			var (
-				buildings *[]device42.Building
-				err       error
+				building *device42.Building
+				err      error
 			)
 
 			if c.String("name") != "" {
-				buildings, err = api.GetBuildingByName(c.String("name"))
+				building, err = api.GetBuildingByName(c.String("name"))
 			} else if c.Int("id") != 0 {
-				buildings, err = api.GetBuildingByID(c.Int("id"))
+				building, err = api.GetBuildingByID(c.Int("id"))
 			} else {
 				_ = cli.ShowCommandHelp(c, "get")
 				return errors.New("you must supply a name")
@@ -113,26 +113,21 @@ func buildingGet(app *cli.App) *cli.Command {
 			}
 
 			if c.Bool("quiet") {
-				for _, i := range *buildings {
-					fmt.Println(i.BuildingID)
-				}
+				fmt.Println(building.BuildingID)
 			} else {
 				switch c.String("format") {
 				case "json":
-					fmt.Print(output.FormatItemsAsJson(buildings))
+					fmt.Print(output.FormatItemAsJson(building))
 				case "list":
 					if c.String("properties") == "" {
-						fmt.Print(output.FormatItemsAsList(buildings, nil))
+						fmt.Print(output.FormatItemAsList(building, nil))
 					} else {
 						p := strings.Split(c.String("properties"), ",")
-						fmt.Print(output.FormatItemsAsList(buildings, p))
+						fmt.Print(output.FormatItemAsList(building, p))
 					}
 				default:
-					data := [][]string{}
-					for _, i := range *buildings {
-						data = append(data,
-							[]string{strconv.Itoa(i.BuildingID), i.Name, i.Address},
-						)
+					data := [][]string{
+						[]string{strconv.Itoa(building.BuildingID), building.Name, building.Address},
 					}
 					headers := []string{"ID", "Name", "Address"}
 					fmt.Print(output.FormatTable(data, headers))

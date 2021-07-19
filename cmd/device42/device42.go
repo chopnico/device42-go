@@ -49,9 +49,10 @@ func main() {
 			DefaultText: "none",
 		},
 		&cli.BoolFlag{
-			Name:  "ignore-ssl",
-			Usage: "ignore ssl errors",
-			Value: false,
+			Name:    "ignore-ssl",
+			Usage:   "ignore ssl errors",
+			EnvVars: []string{"DEVICE42_IGNORE_SSL"},
+			Value:   false,
 		},
 		&cli.IntFlag{
 			Name:  "timeout",
@@ -69,8 +70,9 @@ func main() {
 			Value: "info",
 		},
 		&cli.StringFlag{
-			Name:  "proxy",
-			Usage: "set http proxy",
+			Name:    "proxy",
+			Usage:   "set http proxy",
+			EnvVars: []string{"DEVICE42_PROXY"},
 		},
 	}
 	app.Before = func(c *cli.Context) error {

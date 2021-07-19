@@ -3,18 +3,12 @@ package device42
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/chopnico/device42-go/internal/utilities"
-)
-
-const (
-	ipamSubnetCategoryPath    = "/subnet_category/"
-	ipamSubnetsPath           = "/subnets/"
-	ipamSuggestSubnetPath     = "/suggest_subnet/"
-	ipamCreateChildSubnetPath = "/create_child/"
 )
 
 // Subnet type
@@ -50,7 +44,10 @@ type Subnet struct {
 
 // Subnets type
 type Subnets struct {
-	List []Subnet `json:"subnets"`
+	List       []Subnet `json:"subnets"`
+	Limit      int      `json:"limit"`
+	Offset     int      `json:"offset"`
+	TotalCount int      `json:"total_count"`
 }
 
 type suggestSubnet struct {
@@ -59,6 +56,7 @@ type suggestSubnet struct {
 }
 
 type childSubnet struct {
+	id             int    `json:"subnet_id"`
 	parentSubnetID int    `json:"parent_subnet_id" methods:"post"`
 	maskBits       int    `json:"mask_bits" methods:"post"`
 	network        string `json:"network"`
@@ -66,8 +64,8 @@ type childSubnet struct {
 
 // SetSubnet will add or update a subnet
 func (api *API) SetSubnet(subnet *Subnet) (*Subnet, error) {
-	s := strings.NewReader(utilities.PostParameters(subnet).Encode())
-	b, err := api.Do("POST", "/subnets/", s)
+	p := strings.NewReader(utilities.PostParameters(subnet).Encode())
+	b, err := api.Do("POST", "/subnets/", p)
 	if err != nil {
 		return nil, err
 	}
@@ -93,25 +91,36 @@ func (api *API) SetSubnet(subnet *Subnet) (*Subnet, error) {
 
 // SetChildSubnet will create a new subnet within a parent subnet
 // used for dynamic subnet allocation
-func (api *API) SetChildSubnet(parentID, maskBits int) error {
-	subnet := childSubnet{
+func (api *API) SetChildSubnet(parentID, maskBits int) (*Subnet, error) {
+	c := childSubnet{
 		parentSubnetID: parentID,
 		maskBits:       maskBits,
 	}
-	s := strings.NewReader(utilities.PostParameters(subnet).Encode())
-	_, err := api.Do("POST", "/subnets/create_child/", s)
+	p := strings.NewReader(utilities.PostParameters(c).Encode())
+	b, err := api.Do("POST", "/subnets/create_child/", p)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	err = json.Unmarshal(b, &c)
+	if err != nil {
+		return nil, err
+	}
+
+	subnet, err := api.GetSubnetByID(c.id)
+	if err != nil {
+		return nil, err
+	}
+
+	return subnet, nil
 }
 
 // SuggestSubnet will return the next avaliable subnet from a parent subnet
 func (api *API) SuggestSubnet(parentID, maskBits int, name string, create bool) (*Subnet, error) {
-	s := "/suggest_subnet/" + strconv.Itoa(parentID) + "?mask_bits=" + strconv.Itoa(maskBits)
-
-	b, err := api.Do("GET", s, nil)
+	b, err := api.Do(
+		"GET",
+		"/suggest_subnet/"+strconv.Itoa(parentID)+"?mask_bits="+strconv.Itoa(maskBits),
+		nil)
 	if err != nil {
 		return nil, err
 	}
@@ -148,29 +157,31 @@ func (api *API) SuggestSubnet(parentID, maskBits int, name string, create bool) 
 
 // GetSubnets will return a list of all subnets
 func (api *API) GetSubnets() (*[]Subnet, error) {
-	s := "/subnets/"
-
-	b, err := api.Do("GET", s, nil)
+	b, err := api.Do("GET", "/subnets/", nil)
 	if err != nil {
 		return nil, err
 	}
 
 	subnets := Subnets{}
-
 	err = json.Unmarshal(b, &subnets)
 	if err != nil {
 		return nil, err
+	}
+
+	if api.IsLoggingDebug() {
+		api.WriteToDebugLog(fmt.Sprintf("subnets count : %d\n", subnets.TotalCount))
+		api.WriteToDebugLog(fmt.Sprintf("subnets : %v\n", subnets))
 	}
 
 	return &subnets.List, nil
 }
 
-// GetSubnetByName will return a subnet by a given name
-func (api *API) GetSubnetByName(name string) (*Subnet, error) {
-	qname := url.QueryEscape(name)
-	s := "/subnets/" + "?name=" + qname
-
-	b, err := api.Do("GET", s, nil)
+// GetSubnetsByName will return a list of subnets by a given name
+func (api *API) GetSubnetsByName(n string) (*[]Subnet, error) {
+	b, err := api.Do(
+		"GET",
+		"/subnets/"+"?name="+url.QueryEscape(n),
+		nil)
 	if err != nil {
 		return nil, err
 	}
@@ -182,19 +193,19 @@ func (api *API) GetSubnetByName(name string) (*Subnet, error) {
 		return nil, err
 	}
 
-	if len(subnets.List) != 0 {
-		return &subnets.List[0], nil
+	if len(subnets.List) == 0 {
+		return nil, errors.New("unable to find subnet with name " + n)
 	}
 
-	return nil, errors.New("unable to find subnet with name " + name)
+	return &subnets.List, nil
 }
 
-// GetSubnetByVlanID will return a subnet by a given name
-func (api *API) GetSubnetByVlanID(id string) (*[]Subnet, error) {
-	id = url.QueryEscape(id)
-	s := "/subnets/" + "?vlan_id=" + id
-
-	b, err := api.Do("GET", s, nil)
+// GetSubnetsByVlanID will return a subnet by a given name
+func (api *API) GetSubnetsByVlanID(i int) (*[]Subnet, error) {
+	b, err := api.Do(
+		"GET",
+		"/subnets/"+"?vlan_id="+url.QueryEscape(strconv.Itoa(i)),
+		nil)
 	if err != nil {
 		return nil, err
 	}
@@ -204,6 +215,10 @@ func (api *API) GetSubnetByVlanID(id string) (*[]Subnet, error) {
 	err = json.Unmarshal(b, &subnets)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(subnets.List) == 0 {
+		return nil, errors.New("unable to find subnet with vlan id " + strconv.Itoa(i))
 	}
 
 	return &subnets.List, nil
@@ -211,9 +226,10 @@ func (api *API) GetSubnetByVlanID(id string) (*[]Subnet, error) {
 
 // GetSubnetByID will return a subnet by an ID
 func (api *API) GetSubnetByID(id int) (*Subnet, error) {
-	s := ipamSubnetsPath + "?subnet_id=" + strconv.Itoa(id)
-
-	b, err := api.Do("GET", s, nil)
+	b, err := api.Do(
+		"GET",
+		"/subnets?subnet_id="+strconv.Itoa(id),
+		nil)
 	if err != nil {
 		return nil, err
 	}
@@ -230,9 +246,10 @@ func (api *API) GetSubnetByID(id int) (*Subnet, error) {
 
 // DeleteSubnet will delete a subnet by ID
 func (api *API) DeleteSubnet(id int) error {
-	s := ipamSubnetsPath + strconv.Itoa(id) + "/"
-
-	_, err := api.Do("DELETE", s, nil)
+	_, err := api.Do(
+		"DELETE",
+		"/subnets/"+strconv.Itoa(id)+"/",
+		nil)
 	if err != nil {
 		return err
 	}
