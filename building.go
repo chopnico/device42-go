@@ -44,8 +44,8 @@ func (api *API) GetBuildings() (*[]Building, error) {
 	return &buildings.List, nil
 }
 
-// GetBuildingByName will return a building by name
-func (api *API) GetBuildingByName(n string) (*[]Building, error) {
+// GetBuildingByName will return a list of buildings by name
+func (api *API) GetBuildingByName(n string) (*Building, error) {
 	n = url.QueryEscape(n)
 	b, err := api.Do("GET", "/buildings/"+"?name="+n, nil)
 	if err != nil {
@@ -59,17 +59,15 @@ func (api *API) GetBuildingByName(n string) (*[]Building, error) {
 		return nil, err
 	}
 
-	switch len(buildings.List) {
-	case 0:
+	if len(buildings.List) == 0 {
 		return nil, errors.New("unable to find building with name " + n)
-	default:
-		return &buildings.List, nil
 	}
 
+	return &buildings.List[0], nil
 }
 
 // GetBuildingByID will return a building by id
-func (api *API) GetBuildingByID(id int) (*[]Building, error) {
+func (api *API) GetBuildingByID(id int) (*Building, error) {
 	b, err := api.Do("GET", "/buildings/", nil)
 	if err != nil {
 		return nil, err
@@ -82,13 +80,13 @@ func (api *API) GetBuildingByID(id int) (*[]Building, error) {
 		return nil, err
 	}
 
-	if api.isLoggingDebug() {
+	if api.IsLoggingDebug() {
 		api.WriteToDebugLog(fmt.Sprintf("buildings : %v", buildings.List))
 	}
 
 	for _, i := range buildings.List {
 		if i.BuildingID == id {
-			return &[]Building{i}, nil
+			return &i, nil
 		}
 	}
 
@@ -96,19 +94,19 @@ func (api *API) GetBuildingByID(id int) (*[]Building, error) {
 }
 
 // SetBuilding will create or update a building
-func (api *API) SetBuilding(b *Building) (*[]Building, error) {
+func (api *API) SetBuilding(b *Building) (*Building, error) {
 	s := strings.NewReader(utilities.PostParameters(b).Encode())
 	_, err := api.Do("POST", "/buildings/"+"", s)
 	if err != nil {
 		return nil, err
 	}
 
-	buildings, err := api.GetBuildingByName(b.Name)
+	building, err := api.GetBuildingByID(b.BuildingID)
 	if err != nil {
 		return nil, err
 	}
 
-	return buildings, nil
+	return building, nil
 }
 
 // DeleteBuilding will delete a building by id

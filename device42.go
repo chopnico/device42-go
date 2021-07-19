@@ -150,16 +150,16 @@ func newAPIResponse(b []byte) APIResponse {
 	return r
 }
 
-// isLoggingDebug checks if logging level is set to debug
-func (api *API) isLoggingDebug() bool {
+// IsLoggingDebug checks if logging level is set to debug
+func (api *API) IsLoggingDebug() bool {
 	if api.options["logging-level"].(string) == "debug" {
 		return true
 	}
 	return false
 }
 
-// isLoggingInfo checks if logging level is set to info
-func (api *API) isLoggingInfo() bool {
+// IsLoggingInfo checks if logging level is set to info
+func (api *API) IsLoggingInfo() bool {
 	if api.options["logging-level"].(string) == "info" {
 		return true
 	}
@@ -186,13 +186,13 @@ func NewAPIBasicAuth(username string, password string, host string) (*API, error
 // NOTES: it's pretty ugly
 func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, api.options["url"].(string)+path, body)
-	if api.isLoggingDebug() {
+	if api.IsLoggingDebug() {
 		api.WriteToDebugLog("request url : " + req.URL.Host)
 		api.WriteToDebugLog("request method : " + req.Method)
 		api.WriteToDebugLog("request headers : " + output.FormatItemAsPrettyJson(req.Header))
 	}
 	if err != nil {
-		if api.isLoggingDebug() {
+		if api.IsLoggingDebug() {
 			api.WriteToDebugLog(err.Error())
 			return nil, errors.New("debugging")
 		}
@@ -210,7 +210,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 	}
 
 	resp, err := api.httpClient.Do(req)
-	if api.isLoggingDebug() {
+	if api.IsLoggingDebug() {
 		api.WriteToDebugLog("debug http client do")
 		if err != nil {
 			b, _ := ioutil.ReadAll(resp.Body)
@@ -223,7 +223,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 		api.WriteToDebugLog("request method : " + req.Method)
 	}
 	if err != nil {
-		if api.isLoggingDebug() {
+		if api.IsLoggingDebug() {
 			api.WriteToDebugLog(err.Error())
 			return nil, errors.New("debugging")
 		}
@@ -232,7 +232,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		if api.isLoggingDebug() {
+		if api.IsLoggingDebug() {
 			api.WriteToDebugLog(err.Error())
 			return nil, errors.New("debugging")
 		}
@@ -241,7 +241,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	if api.isLoggingDebug() {
+	if api.IsLoggingDebug() {
 		e := newAPIResponse(b)
 
 		api.WriteToDebugLog("debug http client do")
@@ -274,7 +274,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 		return nil, errors.New("service unavaliable... not sure what's going on")
 	default:
 		e := newAPIResponse(b)
-		if api.isLoggingDebug() {
+		if api.IsLoggingDebug() {
 			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			return nil, errors.New("debugging")
