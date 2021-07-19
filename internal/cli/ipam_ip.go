@@ -9,18 +9,18 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func ipamIpCommands(app *cli.App) []*cli.Command {
+func ipamIPCommands(app *cli.App) []*cli.Command {
 	var commands []*cli.Command
 
 	commands = append(commands,
-		ipamIpClear(app),
-		ipamIpSuggest(app),
+		ipamIPClear(app),
+		ipamIPSuggest(app),
 	)
 
 	return commands
 }
 
-func ipamIpClear(app *cli.App) *cli.Command {
+func ipamIPClear(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
 		&cli.StringFlag{
 			Name:     "address",
@@ -34,8 +34,8 @@ func ipamIpClear(app *cli.App) *cli.Command {
 		Usage: "clear an ip address",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
-			err := api.ClearIp(c.String("address"))
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+			err := api.ClearIP(c.String("address"))
 			if err != nil {
 				return err
 			}
@@ -47,7 +47,7 @@ func ipamIpClear(app *cli.App) *cli.Command {
 	}
 }
 
-func ipamIpSuggest(app *cli.App) *cli.Command {
+func ipamIPSuggest(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
 		&cli.StringFlag{
 			Name:     "subnet-id",
@@ -65,8 +65,8 @@ func ipamIpSuggest(app *cli.App) *cli.Command {
 		Usage: "suggest an ip address",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
-			ip, err := api.SuggestIp(c.String("subnet-id"), c.Bool("reserve"))
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+			ip, err := api.SuggestIP(c.String("subnet-id"), c.Bool("reserve"))
 			if err != nil {
 				return err
 			}

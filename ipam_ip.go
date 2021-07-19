@@ -9,25 +9,8 @@ import (
 	"github.com/chopnico/device42-go/internal/utilities"
 )
 
-const (
-	ipamCustomFieldsPath    = "/custom_fields"
-	ipamVlansPath           = "/vlans/"
-	ipamIpsPath             = "/ips/"
-	ipamSearchPath          = "/search/"
-	ipamSuggestIpPath       = "/suggest_ip/"
-	ipamMacsPath            = "/macs/"
-	ipamSwitchportsPath     = "/switchports"
-	ipamSwitchTemplatesPath = "/switch_templates"
-	ipamSwitchesPath        = "/switches"
-	ipamTapPortsPath        = "/tap_ports"
-	ipamDnsPath             = "/dns"
-	ipamDnsRecordsPath      = ipamDnsPath + "/records/"
-	ipamDnsZonesPath        = ipamDnsPath + "/zones/"
-	ipamDnsCustomFieldsPath = ipamCustomFieldsPath + "/dns_records/"
-	ipamIpNatPath           = "/ipnat/"
-)
-
-type Ip struct {
+// IP type
+type IP struct {
 	Available    string `json:"available"`
 	CustomFields []struct {
 		Key   string `json:"key"`
@@ -37,33 +20,31 @@ type Ip struct {
 	Device      string    `json:"device"`
 	DeviceID    int       `json:"device_id"`
 	ID          int       `json:"id"`
-	Address     string    `json:"ip"`
-	Label       string    `json:"label"`
+	Address     string    `json:"ip" methods:"post"`
+	Label       string    `json:"label" methods:"post"`
 	LastUpdated time.Time `json:"last_updated"`
 	MacAddress  string    `json:"mac_address"`
 	MacID       string    `json:"mac_id"`
-	Notes       string    `json:"notes"`
+	Notes       string    `json:"notes" methods:"notes"`
 	Subnet      string    `json:"subnet"`
-	SubnetID    int       `json:"subnet_id"`
+	SubnetID    int       `json:"subnet_id" methods:"post"`
 	Type        string    `json:"type"`
 }
 
-type clearIp struct {
+type clearIP struct {
 	Address string `json:"ipaddress" methods:"post"`
 	Clear   string `json:"clear_all" methods:"post"`
 }
 
-// suggest an ip address
-// requires a subnet id
-// allows one to reserve an ip address
-func (api *Api) SuggestIp(subnetId string, reserve bool) (*Ip, error) {
-	subnetId = url.QueryEscape(subnetId)
+// SuggestIP will return an avaliable IP address from a specified subnet
+func (api *API) SuggestIP(subnetID string, reserve bool) (*IP, error) {
+	subnetID = url.QueryEscape(subnetID)
 
 	var s string
 	if reserve {
-		s = ipamSuggestIpPath + "?reserve_ip=yes&subnet_id=" + subnetId
+		s = "/suggest_ip/" + "?reserve_ip=yes&subnet_id=" + subnetID
 	} else {
-		s = ipamSuggestIpPath + "?reserve_ip=no&subnet_id=" + subnetId
+		s = "/suggest_ip/" + "?reserve_ip=no&subnet_id=" + subnetID
 	}
 
 	b, err := api.Do("GET", s, nil)
@@ -71,7 +52,7 @@ func (api *Api) SuggestIp(subnetId string, reserve bool) (*Ip, error) {
 		return nil, err
 	}
 
-	ip := Ip{}
+	ip := IP{}
 
 	err = json.Unmarshal(b, &ip)
 	if err != nil {
@@ -81,19 +62,24 @@ func (api *Api) SuggestIp(subnetId string, reserve bool) (*Ip, error) {
 	return &ip, nil
 }
 
-// clear an ip
-// clearing an ip address does not delete the ip address
-// instead, it marks it as avaliable
-func (api *Api) ClearIp(ip string) error {
-	i := clearIp{
+// ClearIP will clear all configurations for a specified IP
+// and will mark the IP as avaliable
+func (api *API) ClearIP(ip string) error {
+	i := clearIP{
 		Address: ip,
 		Clear:   "yes",
 	}
 	s := strings.NewReader(utilities.PostParameters(i).Encode())
-	_, err := api.Do("POST", ipamIpsPath, s)
+	_, err := api.Do("POST", "/ips/", s)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// SetIP will create or update an IP address
+func (api *API) SetIP(ip *IP) (*IP, error) {
+
+	return nil, nil
 }

@@ -17,6 +17,7 @@ const (
 	ipamCreateChildSubnetPath = "/create_child/"
 )
 
+// Subnet type
 type Subnet struct {
 	Allocated             string        `json:"allocated" methods:"post"`
 	AllowBroadcastAddress string        `json:"allow_broadcast_address"`
@@ -47,6 +48,7 @@ type Subnet struct {
 	VrfGroup              string        `json:"vrf_group" methods:"post"` // consistency... come on
 }
 
+// Subnets type
 type Subnets struct {
 	List []Subnet `json:"subnets"`
 }
@@ -57,27 +59,28 @@ type suggestSubnet struct {
 }
 
 type childSubnet struct {
-	ParentSubnetId int    `json:"parent_subnet_id" methods:"post"`
-	MaskBits       int    `json:"mask_bits" methods:"post"`
-	Network        string `json:"network"`
+	parentSubnetID int    `json:"parent_subnet_id" methods:"post"`
+	maskBits       int    `json:"mask_bits" methods:"post"`
+	network        string `json:"network"`
 }
 
-// create a subnet
-// requires a subnet type
-func (api *Api) SetSubnet(subnet *Subnet) (*Subnet, error) {
+// SetSubnet will add or update a subnet
+func (api *API) SetSubnet(subnet *Subnet) (*Subnet, error) {
 	s := strings.NewReader(utilities.PostParameters(subnet).Encode())
-	b, err := api.Do("POST", ipamSubnetsPath, s)
+	b, err := api.Do("POST", "/subnets/", s)
 	if err != nil {
 		return nil, err
 	}
-	apiResponse := ApiResponse{}
+	apiResponse := APIResponse{}
 
 	err = json.Unmarshal(b, &apiResponse)
 	if err != nil {
 		return nil, err
 	}
 	if apiResponse.Code == 0 {
-		subnet, err = api.GetSubnetById(int(apiResponse.Message[1].(float64)))
+		id := int(apiResponse.Message[1].(float64))
+
+		subnet, err = api.GetSubnetByID(id)
 		if err != nil {
 			return nil, err
 		}
@@ -88,15 +91,15 @@ func (api *Api) SetSubnet(subnet *Subnet) (*Subnet, error) {
 	return subnet, nil
 }
 
-// create a child subnet
-// requires a subnet type
-func (api *Api) SetChildSubnet(parentId, maskBits int) error {
+// SetChildSubnet will create a new subnet within a parent subnet
+// used for dynamic subnet allocation
+func (api *API) SetChildSubnet(parentID, maskBits int) error {
 	subnet := childSubnet{
-		ParentSubnetId: parentId,
-		MaskBits:       maskBits,
+		parentSubnetID: parentID,
+		maskBits:       maskBits,
 	}
 	s := strings.NewReader(utilities.PostParameters(subnet).Encode())
-	_, err := api.Do("POST", ipamSubnetsPath+ipamCreateChildSubnetPath, s)
+	_, err := api.Do("POST", "/subnets/create_child/", s)
 	if err != nil {
 		return err
 	}
@@ -104,11 +107,9 @@ func (api *Api) SetChildSubnet(parentId, maskBits int) error {
 	return nil
 }
 
-// suggest a new subnet
-// will suggest a new subnet from a parent id
-// requires both the mask bits and the parent id
-func (api *Api) SuggestSubnet(parentId, maskBits int, name string, create bool) (*Subnet, error) {
-	s := ipamSuggestSubnetPath + strconv.Itoa(parentId) + "?mask_bits=" + strconv.Itoa(maskBits)
+// SuggestSubnet will return the next avaliable subnet from a parent subnet
+func (api *API) SuggestSubnet(parentID, maskBits int, name string, create bool) (*Subnet, error) {
+	s := "/suggest_subnet/" + strconv.Itoa(parentID) + "?mask_bits=" + strconv.Itoa(maskBits)
 
 	b, err := api.Do("GET", s, nil)
 	if err != nil {
@@ -129,7 +130,7 @@ func (api *Api) SuggestSubnet(parentId, maskBits int, name string, create bool) 
 				Network:        resp.Network,
 				MaskBits:       resp.MaskBits,
 				Name:           name,
-				ParentSubnetID: parentId,
+				ParentSubnetID: parentID,
 				Allocated:      "yes",
 			},
 		)
@@ -145,9 +146,9 @@ func (api *Api) SuggestSubnet(parentId, maskBits int, name string, create bool) 
 	return subnet, nil
 }
 
-// retrieve all subnets
-func (api *Api) GetSubnets() (*[]Subnet, error) {
-	s := ipamSubnetsPath
+// GetSubnets will return a list of all subnets
+func (api *API) GetSubnets() (*[]Subnet, error) {
+	s := "/subnets/"
 
 	b, err := api.Do("GET", s, nil)
 	if err != nil {
@@ -164,10 +165,10 @@ func (api *Api) GetSubnets() (*[]Subnet, error) {
 	return &subnets.List, nil
 }
 
-// gets a subnet by name
-func (api *Api) GetSubnetByName(name string) (*Subnet, error) {
+// GetSubnetByName will return a subnet by a given name
+func (api *API) GetSubnetByName(name string) (*Subnet, error) {
 	qname := url.QueryEscape(name)
-	s := ipamSubnetsPath + "?name=" + qname
+	s := "/subnets/" + "?name=" + qname
 
 	b, err := api.Do("GET", s, nil)
 	if err != nil {
@@ -183,15 +184,15 @@ func (api *Api) GetSubnetByName(name string) (*Subnet, error) {
 
 	if len(subnets.List) != 0 {
 		return &subnets.List[0], nil
-	} else {
-		return nil, errors.New("unable to find subnet with name " + name)
 	}
+
+	return nil, errors.New("unable to find subnet with name " + name)
 }
 
-// gets a subnet by vlan id
-func (api *Api) GetSubnetByVlanId(id string) (*[]Subnet, error) {
+// GetSubnetByVlanID will return a subnet by a given name
+func (api *API) GetSubnetByVlanID(id string) (*[]Subnet, error) {
 	id = url.QueryEscape(id)
-	s := ipamSubnetsPath + "?vlan_id=" + id
+	s := "/subnets/" + "?vlan_id=" + id
 
 	b, err := api.Do("GET", s, nil)
 	if err != nil {
@@ -208,8 +209,8 @@ func (api *Api) GetSubnetByVlanId(id string) (*[]Subnet, error) {
 	return &subnets.List, nil
 }
 
-// gets a subnet by vlan id
-func (api *Api) GetSubnetById(id int) (*Subnet, error) {
+// GetSubnetByID will return a subnet by an ID
+func (api *API) GetSubnetByID(id int) (*Subnet, error) {
 	s := ipamSubnetsPath + "?subnet_id=" + strconv.Itoa(id)
 
 	b, err := api.Do("GET", s, nil)
@@ -227,8 +228,8 @@ func (api *Api) GetSubnetById(id int) (*Subnet, error) {
 	return &subnets.List[0], nil
 }
 
-// gets a subnet by vlan id
-func (api *Api) DeleteSubnet(id int) error {
+// DeleteSubnet will delete a subnet by ID
+func (api *API) DeleteSubnet(id int) error {
 	s := ipamSubnetsPath + strconv.Itoa(id) + "/"
 
 	_, err := api.Do("DELETE", s, nil)

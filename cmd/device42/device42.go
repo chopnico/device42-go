@@ -75,7 +75,7 @@ func main() {
 	}
 	app.Before = func(c *cli.Context) error {
 		var err error
-		var api *device42.Api
+		var api *device42.API
 
 		if c.String("username") == "" {
 			cli.ShowAppHelp(c)
@@ -88,7 +88,7 @@ func main() {
 			return errors.New(device42.ErrorEmptyHost)
 		}
 
-		api, err = device42.NewApiBasicAuth(
+		api, err = device42.NewAPIBasicAuth(
 			c.String("username"),
 			c.String("password"),
 			c.String("host"),
@@ -104,10 +104,10 @@ func main() {
 
 		// should we ignore ssl errors?
 		if c.Bool("ignore-ssl") {
-			api.IgnoreSslErrors()
+			api.IgnoreSSLErrors()
 		}
 
-		ctx := context.WithValue(c.Context, "api", api)
+		ctx := context.WithValue(c.Context, device42.APIContextKey("api"), api)
 		c.Context = ctx
 
 		return nil

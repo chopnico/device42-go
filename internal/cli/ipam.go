@@ -12,7 +12,7 @@ func ipamCommands(app *cli.App) *cli.Command {
 			{
 				Name:        "ip",
 				Usage:       "ip address management",
-				Subcommands: ipamIpCommands(app),
+				Subcommands: ipamIPCommands(app),
 			},
 			{
 				Name:        "subnet",
@@ -22,7 +22,7 @@ func ipamCommands(app *cli.App) *cli.Command {
 			{
 				Name:        "vrf-group",
 				Usage:       "vrf group management",
-				Subcommands: ipamVrfGroupCommands(app),
+				Subcommands: ipamVRFGroupCommands(app),
 			},
 		},
 	}

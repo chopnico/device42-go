@@ -12,20 +12,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func ipamVrfGroupCommands(app *cli.App) []*cli.Command {
+func ipamVRFGroupCommands(app *cli.App) []*cli.Command {
 	var commands []*cli.Command
 
 	commands = append(commands,
-		ipamVrfGroupList(app),
-		ipamVrfGroupGet(app),
-		ipamVrfGroupSet(app),
-		ipamVrfGroupDelete(app),
+		ipamVRFGroupList(app),
+		ipamVRFGroupGet(app),
+		ipamVRFGroupSet(app),
+		ipamVRFGroupDelete(app),
 	)
 
 	return commands
 }
 
-func ipamVrfGroupDelete(app *cli.App) *cli.Command {
+func ipamVRFGroupDelete(app *cli.App) *cli.Command {
 	return &cli.Command{
 		Name:      "delete",
 		Usage:     "delete a vrf group",
@@ -34,29 +34,28 @@ func ipamVrfGroupDelete(app *cli.App) *cli.Command {
 			if c.Args().Len() == 0 {
 				_ = cli.ShowCommandHelp(c, "delete")
 				return errors.New("you must supply a vrf id")
-			} else {
-				for i := 0; i < c.Args().Len(); i++ {
-					api := c.Context.Value("api").(*device42.Api)
-
-					var id int
-					_, err := fmt.Sscan(c.Args().First(), &id)
-					if err != nil {
-						return err
-					}
-					err = api.DeleteVrfGroup(id)
-					if err != nil {
-						return err
-					}
-
-					fmt.Println("sucessfully deleted vrf group with id " + strconv.Itoa(id))
-				}
-				return nil
 			}
+			for i := 0; i < c.Args().Len(); i++ {
+				api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+
+				var id int
+				_, err := fmt.Sscan(c.Args().First(), &id)
+				if err != nil {
+					return err
+				}
+				err = api.DeleteVRFGroup(id)
+				if err != nil {
+					return err
+				}
+
+				fmt.Println("sucessfully deleted vrf group with id " + strconv.Itoa(id))
+			}
+			return nil
 		},
 	}
 }
 
-func ipamVrfGroupSet(app *cli.App) *cli.Command {
+func ipamVRFGroupSet(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
 		&cli.StringFlag{
 			Name:     "name",
@@ -80,17 +79,17 @@ func ipamVrfGroupSet(app *cli.App) *cli.Command {
 		Usage: "set a vrf group",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 
 			buildings := strings.Split(c.String("buildings"), ",")
 
-			vrfGroup := device42.VrfGroup{
+			vrfGroup := device42.VRFGroup{
 				Name:        c.String("name"),
 				Description: c.String("description"),
 				Buildings:   buildings,
 			}
 
-			vg, err := api.SetVrfGroup(&vrfGroup)
+			vg, err := api.SetVRFGroup(&vrfGroup)
 			if err != nil {
 				return err
 			}
@@ -111,7 +110,7 @@ func ipamVrfGroupSet(app *cli.App) *cli.Command {
 	}
 }
 
-func ipamVrfGroupGet(app *cli.App) *cli.Command {
+func ipamVRFGroupGet(app *cli.App) *cli.Command {
 	flags := addQuietFlag(
 		addDisplayFlags(
 			[]cli.Flag{
@@ -134,19 +133,19 @@ func ipamVrfGroupGet(app *cli.App) *cli.Command {
 		Usage: "get a vrf a group",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 			var (
-				vrfGroup *device42.VrfGroup
+				vrfGroup *device42.VRFGroup
 				err      error
 			)
 
 			if c.Int("id") != 0 {
-				vrfGroup, err = api.GetVrfGroupById(c.Int("id"))
+				vrfGroup, err = api.GetVRFGroupByID(c.Int("id"))
 				if err != nil {
 					return err
 				}
 			} else if c.String("name") != "" {
-				vrfGroup, err = api.GetVrfGroupByName(c.String("name"))
+				vrfGroup, err = api.GetVRFGroupByName(c.String("name"))
 				if err != nil {
 					return err
 				}
@@ -170,7 +169,7 @@ func ipamVrfGroupGet(app *cli.App) *cli.Command {
 	}
 }
 
-func ipamVrfGroupList(app *cli.App) *cli.Command {
+func ipamVRFGroupList(app *cli.App) *cli.Command {
 	flags := addQuietFlag(addDisplayFlags(nil))
 
 	return &cli.Command{
@@ -178,8 +177,8 @@ func ipamVrfGroupList(app *cli.App) *cli.Command {
 		Usage: "list a all vrf groups",
 		Flags: flags,
 		Action: func(c *cli.Context) error {
-			api := c.Context.Value("api").(*device42.Api)
-			vrfGroups, err := api.GetVrfGroups()
+			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+			vrfGroups, err := api.GetVRFGroups()
 			if err != nil {
 				return err
 			}
