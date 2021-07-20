@@ -121,7 +121,7 @@ func (api *API) SuggestIPWithSubnet(s string, maskBits int, reserve bool) (*IP, 
 
 // SuggestIPWithVRFGroup will return an avaliable IP from a specified subnet with VRF ID
 // you can also reserve the IP, which will mark it as allocated
-func (api *API) SuggestIPWithSubnetVRFGroup(v string, maskBits int, reserve bool) (*IP, error) {
+func (api *API) SuggestIPWithVRFGroup(v string, maskBits int, reserve bool) (*IP, error) {
 	v = url.QueryEscape(v)
 
 	var s string
