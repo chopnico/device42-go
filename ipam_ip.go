@@ -158,6 +158,44 @@ func (api *API) GetIPByID(id int) (*IP, error) {
 	return &ips.List[0], nil
 }
 
+// GetIPByAddressWithSubnetName returns a ip by address with subnet name
+func (api *API) GetIPByAddressWithSubnetName(a, s string) (*IP, error) {
+	q := "/ips?subnet=" + url.QueryEscape(s) + "&address=" + url.QueryEscape(a)
+
+	b, err := api.Do("GET", q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ips := IPs{}
+
+	err = json.Unmarshal(b, &ips)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ips.List[0], nil
+}
+
+// GetIPByAddressWithSubnetID returns a ip by address with subnet id
+func (api *API) GetIPByAddressWithSubnetID(a string, i int) (*IP, error) {
+	q := "/ips?subnet_id=" + strconv.Itoa(i) + "&address=" + url.QueryEscape(a)
+
+	b, err := api.Do("GET", q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ips := IPs{}
+
+	err = json.Unmarshal(b, &ips)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ips.List[0], nil
+}
+
 // GetIPsByLabel will return a list of IPs by label
 func (api *API) GetIPsByLabel(l string) (*[]IP, error) {
 	l = "/ips?label=" + l
