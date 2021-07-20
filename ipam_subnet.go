@@ -176,11 +176,11 @@ func (api *API) GetSubnets() (*[]Subnet, error) {
 	return &subnets.List, nil
 }
 
-// GetSubnetsByName will return a list of subnets by a given name
-func (api *API) GetSubnetsByName(n string) (*[]Subnet, error) {
+// GetSubnetByNameWithNetwork will return a list of subnets by a given name
+func (api *API) GetSubnetByNameWithNetwork(n, m string) (*Subnet, error) {
 	b, err := api.Do(
 		"GET",
-		"/subnets/"+"?name="+url.QueryEscape(n),
+		"/subnets/"+"?name="+url.QueryEscape(n)+"&network="+m,
 		nil)
 	if err != nil {
 		return nil, err
@@ -196,8 +196,7 @@ func (api *API) GetSubnetsByName(n string) (*[]Subnet, error) {
 	if len(subnets.List) == 0 {
 		return nil, errors.New("unable to find subnet with name " + n)
 	}
-
-	return &subnets.List, nil
+	return &subnets.List[0], nil
 }
 
 // GetSubnetsByVlanID will return a subnet by a given name
