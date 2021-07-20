@@ -58,7 +58,12 @@ func ipamIPSuggest(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
 		&cli.IntFlag{
 			Name:     "subnet-id",
-			Usage:    "`SUBNET-ID` to chose an IP from",
+			Usage:    "`SUBNET-ID` to chose an ip from",
+			Required: true,
+		},
+		&cli.IntFlag{
+			Name:     "mask-bits",
+			Usage:    "`MASK-BITS` for ip",
 			Required: true,
 		},
 		&cli.BoolFlag{
@@ -73,7 +78,7 @@ func ipamIPSuggest(app *cli.App) *cli.Command {
 		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
-			ip, err := api.SuggestIPWithSubnetID(c.Int("subnet-id"), c.Bool("reserve"))
+			ip, err := api.SuggestIPWithSubnetID(c.Int("subnet-id"), c.Int("mask-bits"), c.Bool("reserve"))
 			if err != nil {
 				return err
 			}
