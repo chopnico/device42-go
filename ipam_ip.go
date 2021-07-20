@@ -67,16 +67,96 @@ func (api *API) GetIPs() (*[]IP, error) {
 	return &ips.List, nil
 }
 
-// SuggestIP will return an avaliable IP from a specified subnet
+// SuggestIPWithSubnetID will return an avaliable IP from a specified subnet with ID
 // you can also reserve the IP, which will mark it as allocated
-func (api *API) SuggestIP(subnetID string, reserve bool) (*IP, error) {
-	subnetID = url.QueryEscape(subnetID)
+func (api *API) SuggestIPWithSubnetID(i int, reserve bool) (*IP, error) {
+	id := url.QueryEscape(strconv.Itoa(i))
 
 	var s string
 	if reserve {
-		s = "/suggest_ip/" + "?reserve_ip=yes&subnet_id=" + subnetID
+		s = "/suggest_ip?reserve_ip=yes&subnet_id=" + id
 	} else {
-		s = "/suggest_ip/" + "?reserve_ip=no&subnet_id=" + subnetID
+		s = "/suggest_ip?reserve_ip=no&subnet_id=" + id
+	}
+
+	b, err := api.Do("GET", s, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ip := IP{}
+
+	err = json.Unmarshal(b, &ip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ip, nil
+}
+
+// SuggestIPWithSubnet will return an avaliable IP from a specified subnet with name
+// you can also reserve the IP, which will mark it as allocated
+func (api *API) SuggestIPWithSubnet(s string, reserve bool) (*IP, error) {
+	s = url.QueryEscape(s)
+
+	if reserve {
+		s = "/suggest_ip?reserve_ip=yes&subnet=" + s
+	} else {
+		s = "/suggest_ip?reserve_ip=no&subnet=" + s
+	}
+
+	b, err := api.Do("GET", s, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ip := IP{}
+
+	err = json.Unmarshal(b, &ip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ip, nil
+}
+
+// SuggestIPWithSubnetVRF will return an avaliable IP from a specified subnet with VRF ID
+// you can also reserve the IP, which will mark it as allocated
+func (api *API) SuggestIPWithSubnetVRF(v string, reserve bool) (*IP, error) {
+	v = url.QueryEscape(v)
+
+	var s string
+	if reserve {
+		s = "/suggest_ip?reserve_ip=yes&vrf_group=" + v
+	} else {
+		s = "/suggest_ip?reserve_ip=no&vrf_group=" + v
+	}
+
+	b, err := api.Do("GET", s, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ip := IP{}
+
+	err = json.Unmarshal(b, &ip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ip, nil
+}
+
+// SuggestIPWithSubnetVRF will return an avaliable IP from a specified subnet with VRF ID
+// you can also reserve the IP, which will mark it as allocated
+func (api *API) SuggestIPWithSubnetVRFID(v int, reserve bool) (*IP, error) {
+	id := url.QueryEscape(strconv.Itoa(v))
+
+	var s string
+	if reserve {
+		s = "/suggest_ip?reserve_ip=yes&vrf_group_id=" + id
+	} else {
+		s = "/suggest_ip?reserve_ip=no&vrf_group_id=" + id
 	}
 
 	b, err := api.Do("GET", s, nil)

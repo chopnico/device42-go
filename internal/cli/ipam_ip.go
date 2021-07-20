@@ -56,7 +56,7 @@ func ipamIPClear(app *cli.App) *cli.Command {
 
 func ipamIPSuggest(app *cli.App) *cli.Command {
 	flags := []cli.Flag{
-		&cli.StringFlag{
+		&cli.IntFlag{
 			Name:     "subnet-id",
 			Usage:    "`SUBNET-ID` to chose an IP from",
 			Required: true,
@@ -73,7 +73,7 @@ func ipamIPSuggest(app *cli.App) *cli.Command {
 		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
-			ip, err := api.SuggestIP(c.String("subnet-id"), c.Bool("reserve"))
+			ip, err := api.SuggestIPWithSubnetID(c.Int("subnet-id"), c.Bool("reserve"))
 			if err != nil {
 				return err
 			}
