@@ -101,12 +101,13 @@ func (api *API) SetBuilding(b *Building) (*Building, error) {
 		return nil, err
 	}
 
-	resp := APIResponse{}
-	if err = json.Unmarshal(r, &resp); err != nil {
+	apiResponse := APIResponse{}
+	if err = json.Unmarshal(r, &apiResponse); err != nil {
 		return nil, err
 	}
 
-	building, err := api.GetBuildingByID(resp.Message[1].(int))
+	id := int(apiResponse.Message[1].(float64))
+	building, err := api.GetBuildingByID(id)
 	if err != nil {
 		return nil, err
 	}
