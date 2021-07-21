@@ -32,8 +32,8 @@ type API struct {
 
 // APIResponse type
 type APIResponse struct {
-	Code    int           `json:"code"`
-	Message []interface{} `json:"msg"`
+	Code    int         `json:"code"`
+	Message interface{} `json:"msg"`
 }
 
 // APIContextKey is a helper string key for contexts
@@ -277,8 +277,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 		if api.IsLoggingDebug() {
 			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
 			api.WriteToDebugLog(fmt.Sprintf("%s", e.Message))
-			return nil, errors.New("debugging")
 		}
-		return nil, fmt.Errorf("%s", e.Message)
+		return nil, fmt.Errorf("%v", e.Message)
 	}
 }

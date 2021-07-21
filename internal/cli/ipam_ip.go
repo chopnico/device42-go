@@ -84,7 +84,7 @@ func ipamIPSuggest(app *cli.App) *cli.Command {
 			}
 
 			if c.Bool("reserve") {
-				_, err = api.SetIP(ip)
+				ip, err = api.SetIP(ip)
 				if err != nil {
 					return err
 				}

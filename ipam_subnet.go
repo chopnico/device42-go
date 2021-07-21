@@ -76,14 +76,14 @@ func (api *API) SetSubnet(subnet *Subnet) (*Subnet, error) {
 		return nil, err
 	}
 	if apiResponse.Code == 0 {
-		id := int(apiResponse.Message[1].(float64))
+		id := int(apiResponse.Message.([]interface{})[1].(float64))
 
 		subnet, err = api.GetSubnetByID(id)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		return nil, errors.New(apiResponse.Message[0].(string))
+		return nil, errors.New(apiResponse.Message.([]interface{})[0].(string))
 	}
 
 	return subnet, nil

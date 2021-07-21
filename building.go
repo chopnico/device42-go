@@ -106,7 +106,7 @@ func (api *API) SetBuilding(b *Building) (*Building, error) {
 		return nil, err
 	}
 
-	id := int(apiResponse.Message[1].(float64))
+	id := int(apiResponse.Message.([]interface{})[1].(float64))
 	building, err := api.GetBuildingByID(id)
 	if err != nil {
 		return nil, err
