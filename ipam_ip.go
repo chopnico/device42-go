@@ -90,6 +90,8 @@ func (api *API) SuggestIPWithSubnetID(i int, maskBits int, reserve bool) (*IP, e
 		return nil, err
 	}
 
+	ip.IPAddress = ip.Address
+
 	return &ip, nil
 }
 
@@ -175,7 +177,6 @@ func (api *API) SuggestIPWithVRFGroupID(v int, maskBits int, reserve bool) (*IP,
 
 // SetIP will create or update an IP
 func (api *API) SetIP(ip *IP) (*IP, error) {
-	ip.IPAddress = ip.Address // because consistency is hard.... come one
 	s := strings.NewReader(utilities.PostParameters(ip).Encode())
 	b, err := api.Do("POST", "/ips/", s)
 	if err != nil {

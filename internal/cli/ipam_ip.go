@@ -83,6 +83,13 @@ func ipamIPSuggest(app *cli.App) *cli.Command {
 				return err
 			}
 
+			if c.Bool("reserve") {
+				_, err = api.SetIP(ip)
+				if err != nil {
+					return err
+				}
+			}
+
 			switch c.String("format") {
 			case "json":
 				fmt.Printf("%s\n", output.FormatItemAsJson(ip))
