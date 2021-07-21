@@ -91,6 +91,7 @@ func (api *API) SuggestIPWithSubnetID(i int, maskBits int, reserve bool) (*IP, e
 	}
 
 	ip.IPAddress = ip.Address
+	ip.SubnetID = i
 
 	return &ip, nil
 }
