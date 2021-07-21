@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/chopnico/output"
+	"github.com/google/uuid"
 )
 
 const (
@@ -208,6 +209,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Add("Accept`", "application/json")
 	}
+	req.Header.Add("Client-Transaction-ID", uuid.New().String())
 
 	resp, err := api.httpClient.Do(req)
 	if api.IsLoggingDebug() {
@@ -268,8 +270,6 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 		return nil, errors.New("method not allowed... what're you trying pull?")
 	case 410:
 		return nil, errors.New("gone... was it even real?")
-	case 500:
-		return nil, errors.New("internal server error... our stuff is broke")
 	case 503:
 		return nil, errors.New("service unavaliable... not sure what's going on")
 	default:
