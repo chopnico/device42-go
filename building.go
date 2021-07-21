@@ -96,12 +96,17 @@ func (api *API) GetBuildingByID(id int) (*Building, error) {
 // SetBuilding will create or update a building
 func (api *API) SetBuilding(b *Building) (*Building, error) {
 	s := strings.NewReader(utilities.PostParameters(b).Encode())
-	_, err := api.Do("POST", "/buildings/"+"", s)
+	r, err := api.Do("POST", "/buildings/"+"", s)
 	if err != nil {
 		return nil, err
 	}
 
-	building, err := api.GetBuildingByID(b.BuildingID)
+	buildings := Buildings{}
+	if err = json.Unmarshal(r, &buildings); err != nil {
+		return nil, err
+	}
+
+	building, err := api.GetBuildingByID(buildings.List[0].BuildingID)
 	if err != nil {
 		return nil, err
 	}
