@@ -188,7 +188,15 @@ func ipamSubnetSet(app *cli.App) *cli.Command {
 }
 
 func ipamSubnetList(app *cli.App) *cli.Command {
-	flags := addQuietFlag(addDisplayFlags(nil))
+	flags := addQuietFlag(
+		addDisplayFlags([]cli.Flag{
+			&cli.StringFlag{
+				Name:     "filter-by-tags",
+				Usage:    "allows for filtering of subnets by a list of `TAGS`",
+				Required: false,
+			},
+		},
+		))
 
 	return &cli.Command{
 		Name:  "list",
@@ -196,12 +204,18 @@ func ipamSubnetList(app *cli.App) *cli.Command {
 		Flags: flags,
 		Action: func(c *cli.Context) error {
 			api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
+			subnets := &[]device42.Subnet{}
+			var err error
 
-			subnets, err := api.GetSubnets()
+			if c.String("filter-by-tags") != "" {
+				s := strings.Split(c.String("filter-by-tags"), ",")
+				subnets, err = api.GetSubnetsByAllTags(s)
+			} else {
+				subnets, err = api.GetSubnets()
+			}
 			if err != nil {
 				return err
 			}
-
 			if c.Bool("quiet") {
 				for _, i := range *subnets {
 					fmt.Println(i.SubnetID)

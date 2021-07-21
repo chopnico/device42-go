@@ -243,6 +243,48 @@ func (api *API) GetSubnetByID(id int) (*Subnet, error) {
 	return &subnets.List[0], nil
 }
 
+// GetSubnetsByAllTags will only return subnets that match all tags
+func (api *API) GetSubnetsByAllTags(t []string) (*[]Subnet, error) {
+	tags := strings.Join(t, ",")
+	b, err := api.Do(
+		"GET",
+		"/subnets?tags_and="+url.QueryEscape(tags),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	subnets := Subnets{}
+
+	err = json.Unmarshal(b, &subnets)
+	if err != nil {
+		return nil, err
+	}
+
+	return &subnets.List, nil
+}
+
+// GetSubnetsByAllTags will return subnets that match any tag
+func (api *API) GetSubnetsByAnyTags(t []string) (*[]Subnet, error) {
+	tags := strings.Join(t, ",")
+	b, err := api.Do(
+		"GET",
+		"/subnets?tags="+url.QueryEscape(tags),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	subnets := Subnets{}
+
+	err = json.Unmarshal(b, &subnets)
+	if err != nil {
+		return nil, err
+	}
+
+	return &subnets.List, nil
+}
+
 // DeleteSubnet will delete a subnet by ID
 func (api *API) DeleteSubnet(id int) error {
 	_, err := api.Do(
