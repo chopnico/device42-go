@@ -36,7 +36,7 @@ type Subnet struct {
 	RangeEnd              string        `json:"range_end" methods:"post"`
 	ServiceLevel          string        `json:"service_level"`
 	SubnetID              int           `json:"subnet_id"`
-	Tags                  []interface{} `json:"tags"`
+	Tags                  []string      `json:"tags" methods:"post"`
 	VrfGroupID            int           `json:"vrf_group_id" methods:"post"`
 	VrfGroupName          string        `json:"vrf_group_name"`
 	VrfGroup              string        `json:"vrf_group" methods:"post"` // consistency... come on
