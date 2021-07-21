@@ -119,6 +119,9 @@ func (api *API) SuggestIPWithSubnet(s string, maskBits int, reserve bool) (*IP, 
 		return nil, err
 	}
 
+	ip.IPAddress = ip.Address
+	ip.Subnet = s
+
 	return &ip, nil
 }
 
@@ -146,6 +149,9 @@ func (api *API) SuggestIPWithVRFGroup(v string, maskBits int, reserve bool) (*IP
 		return nil, err
 	}
 
+	ip.IPAddress = ip.Address
+	ip.VRFGroup = v
+
 	return &ip, nil
 }
 
@@ -172,6 +178,13 @@ func (api *API) SuggestIPWithVRFGroupID(v int, maskBits int, reserve bool) (*IP,
 	if err != nil {
 		return nil, err
 	}
+
+	ip.IPAddress = ip.Address
+	vrfGroup, err := api.GetVRFGroupByID(v)
+	if err != nil {
+		return nil, err
+	}
+	ip.VRFGroup = vrfGroup.Name
 
 	return &ip, nil
 }
