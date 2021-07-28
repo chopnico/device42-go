@@ -184,13 +184,13 @@ func buildingSet(app *cli.App) *cli.Command {
 
 			switch c.String("format") {
 			case "json":
-				fmt.Print(output.FormatItemsAsJson(b))
+				fmt.Print(output.FormatItemAsJson(b))
 			default:
 				if c.String("properties") == "" {
-					fmt.Print(output.FormatItemsAsList(b, nil))
+					fmt.Print(output.FormatItemAsList(b, nil))
 				} else {
 					p := strings.Split(c.String("properties"), ",")
-					fmt.Print(output.FormatItemsAsList(b, p))
+					fmt.Print(output.FormatItemAsList(b, p))
 				}
 			}
 			return nil
