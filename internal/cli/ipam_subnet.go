@@ -260,8 +260,8 @@ func ipamSubnetDelete(app *cli.App) *cli.Command {
 			for i := 0; i < c.Args().Len(); i++ {
 				api := c.Context.Value(device42.APIContextKey("api")).(*device42.API)
 
-				var id int
-				_, err := fmt.Sscan(c.Args().First(), &id)
+				id := 0
+				_, err := fmt.Sscan(c.Args().Get(i), &id)
 				if err != nil {
 					return err
 				}

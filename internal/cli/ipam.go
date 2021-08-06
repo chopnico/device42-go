@@ -24,6 +24,11 @@ func ipamCommands(app *cli.App) *cli.Command {
 				Usage:       "vrf group management",
 				Subcommands: ipamVRFGroupCommands(app),
 			},
+			{
+				Name:        "vlan",
+				Usage:       "vlan management",
+				Subcommands: ipamVLANCommands(app),
+			},
 		},
 	}
 }
