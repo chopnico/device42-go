@@ -112,20 +112,20 @@ func (api *API) DeleteVLAN(id int) error {
 func (api *API) GetVLANByID(id int) (*VLAN, error) {
 	b, err := api.Do(
 		"GET",
-		"/vlans?vlan_id="+strconv.Itoa(id),
+		"/vlans/"+strconv.Itoa(id),
 		nil)
 	if err != nil {
 		return nil, err
 	}
 
-	vlans := VLANs{}
+	vlan := VLAN{}
 
-	err = json.Unmarshal(b, &vlans)
+	err = json.Unmarshal(b, &vlan)
 	if err != nil {
 		return nil, err
 	}
 
-	return &vlans.List[0], nil
+	return &vlan, nil
 }
 
 // GetVLANByNumber will return a vlan by an number
