@@ -217,6 +217,34 @@ func (api *API) SetIP(ip *IP) (*IP, error) {
 	return ip, nil
 }
 
+// UpdateIP will create or update an IP
+func (api *API) UpdateIP(ip *IP) (*IP, error) {
+	s := strings.NewReader(utilities.PostParameters(ip).Encode())
+	b, err := api.Do("PUT", "/ips/", s)
+	if err != nil {
+		return nil, err
+	}
+
+	apiResponse := APIResponse{}
+
+	err = json.Unmarshal(b, &apiResponse)
+	if err != nil {
+		return nil, err
+	}
+	if apiResponse.Code == 0 {
+		id := int(apiResponse.Message.([]interface{})[1].(float64))
+
+		ip, err = api.GetIPByID(id)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, errors.New(apiResponse.Message.([]interface{})[0].(string))
+	}
+
+	return ip, nil
+}
+
 // ClearIP will clear all configurations for a specified IP
 // and will mark the IP as avaliable
 func (api *API) ClearIP(ip string) error {
