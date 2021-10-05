@@ -247,6 +247,30 @@ func (api *API) GetSubnetsByVRFGroupID(i int) (*[]Subnet, error) {
 	return &subnets.List, nil
 }
 
+// GetSubnetsByParentSubnetID will return a subnet by a given name
+func (api *API) GetSubnetsByParentSubnetID(i int) (*[]Subnet, error) {
+	b, err := api.Do(
+		"GET",
+		"/subnets/"+"?parent_subnet_id="+url.QueryEscape(strconv.Itoa(i)),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	subnets := Subnets{}
+
+	err = json.Unmarshal(b, &subnets)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(subnets.List) == 0 {
+		return nil, errors.New("unable to find subnet with parent subnet id " + strconv.Itoa(i))
+	}
+
+	return &subnets.List, nil
+}
+
 // GetSubnetByID will return a subnet by an ID
 func (api *API) GetSubnetByID(id int) (*Subnet, error) {
 	b, err := api.Do(
