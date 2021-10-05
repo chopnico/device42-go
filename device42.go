@@ -202,7 +202,7 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 
 	req.SetBasicAuth(api.options["username"].(string), api.options["password"].(string))
 	switch method {
-	case "POST":
+	case "POST", "PUT":
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		req.Header.Add("Accept`", "application/json")
 	case "GET":
