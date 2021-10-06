@@ -28,11 +28,12 @@ type IP struct {
 	LastUpdated time.Time `json:"last_updated"`
 	MacAddress  string    `json:"mac_address"`
 	MacID       int       `json:"mac_id"`
-	Notes       string    `json:"notes" methods:"notes"`
+	Notes       string    `json:"notes" methods:"post"`
 	Subnet      string    `json:"subnet" methods:"post"`
 	SubnetID    int       `json:"subnet_id" methods:"post"`
 	Type        string    `json:"type"`
 	VRFGroup    string    `json:"vrf_group" methods:"post"`
+	VRFGroupID  int       `json:"vrf_group_id" methods:"post"`
 }
 
 // IPs type
