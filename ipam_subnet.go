@@ -199,6 +199,29 @@ func (api *API) GetSubnetByNameWithNetwork(n, m string) (*Subnet, error) {
 	return &subnets.List[0], nil
 }
 
+// GetSubnetByNameWithVRFGroupID will return a list of subnets by a given name
+func (api *API) GetSubnetByNameWithVRFGroupID(n string, i int) (*Subnet, error) {
+	b, err := api.Do(
+		"GET",
+		"/subnets/"+"?name="+url.QueryEscape(n)+"&vrf_group_id="+strconv.Itoa(i),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	subnets := Subnets{}
+
+	err = json.Unmarshal(b, &subnets)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(subnets.List) == 0 {
+		return nil, errors.New("unable to find subnet with name " + n)
+	}
+	return &subnets.List[0], nil
+}
+
 // GetSubnetsByVlanID will return a subnet by a given name
 func (api *API) GetSubnetsByVlanID(i int) (*[]Subnet, error) {
 	b, err := api.Do(
