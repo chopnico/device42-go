@@ -161,12 +161,13 @@ func (api *API) SuggestIPWithVRFGroup(v string, maskBits int, reserve bool) (*IP
 func (api *API) SuggestIPWithVRFGroupID(vrfGroupID, subnetID int, maskBits int, reserve bool) (*IP, error) {
 	id := url.QueryEscape(strconv.Itoa(vrfGroupID))
 	sid := url.QueryEscape(strconv.Itoa(vrfGroupID))
+	mask := url.QueryEscape(strconv.Itoa(maskBits))
 
 	var s string
 	if reserve {
-		s = "/suggest_ip?reserve_ip=yes&mask_bits=" + strconv.Itoa(maskBits) + "&vrf_group_id=" + id + "&subnet_id=" + sid
+		s = "/suggest_ip?reserve_ip=yes&mask_bits=" + mask + "&vrf_group_id=" + id + "&subnet_id=" + sid
 	} else {
-		s = "/suggest_ip?reserve_ip=no&mask_bits=" + strconv.Itoa(maskBits) + "&vrf_group_id=" + id + "&subnet_id=" + sid
+		s = "/suggest_ip?reserve_ip=no&mask_bits=" + mask + "&vrf_group_id=" + id + "&subnet_id=" + sid
 	}
 
 	b, err := api.Do("GET", s, nil)
