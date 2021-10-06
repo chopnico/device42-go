@@ -220,7 +220,7 @@ func (api *API) SetIP(ip *IP) (*IP, error) {
 // UpdateIP will create or update an IP
 func (api *API) UpdateIP(ip *IP) (*IP, error) {
 	s := strings.NewReader(utilities.PostParameters(ip).Encode())
-	b, err := api.Do("PUT", "/ips/", s)
+	b, err := api.Do("POST", "/ips/", s)
 	if err != nil {
 		return nil, err
 	}
