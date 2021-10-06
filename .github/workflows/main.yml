@@ -1,0 +1,15 @@
+name: delete_release
+on:
+  push:
+    branches:
+      - master
+jobs:
+  delete_release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: dev-drprasad/delete-older-releases@v0.2.0
+      with:
+        repo: chopnico/device42-go
+        keep_latest: 4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
