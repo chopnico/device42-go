@@ -160,7 +160,7 @@ func (api *API) SuggestIPWithVRFGroup(v string, maskBits int, reserve bool) (*IP
 // you can also reserve the IP, which will mark it as allocated
 func (api *API) SuggestIPWithVRFGroupID(vrfGroupID, subnetID int, maskBits int, reserve bool) (*IP, error) {
 	id := url.QueryEscape(strconv.Itoa(vrfGroupID))
-	sid := url.QueryEscape(strconv.Itoa(vrfGroupID))
+	sid := url.QueryEscape(strconv.Itoa(subnetID))
 	mask := url.QueryEscape(strconv.Itoa(maskBits))
 
 	var s string
