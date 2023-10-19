@@ -267,11 +267,11 @@ func (api *API) Do(method, path string, body io.Reader) ([]byte, error) {
 	case 404:
 		return nil, errors.New("resource not found... it's gone")
 	case 405:
-		return nil, errors.New("method not allowed... what're you trying pull?")
+		return nil, errors.New("method not allowed... what are you trying pull?")
 	case 410:
 		return nil, errors.New("gone... was it even real?")
 	case 503:
-		return nil, errors.New("service unavaliable... not sure what's going on")
+		return nil, errors.New("service unavailable... not sure what's going on")
 	default:
 		e := newAPIResponse(b)
 		if api.IsLoggingDebug() {

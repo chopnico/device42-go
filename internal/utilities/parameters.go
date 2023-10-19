@@ -12,9 +12,10 @@ import (
 // PostParameters will build a struct from methods:post tags
 // REVIEW: refactor
 // NOTES: i would like to extend the structs packages so that it can build
-// 		  dynamic structs based on particular tags. this will be helpful
-// 		  accross this library as device42 requires parameters instead of
-// 		  a post body
+//
+//	dynamic structs based on particular tags. this will be helpful
+//	accross this library as device42 requires parameters instead of
+//	a post body
 func PostParameters(i interface{}) url.Values {
 	d := url.Values{}
 	z := structs.New(i)
